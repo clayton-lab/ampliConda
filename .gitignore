@@ -1,0 +1,9 @@
+results/**
+resources/**
+logs/**
+.snakemake
+.snakemake/**
+
+# Backup files created by vim
+*.un
+*~
