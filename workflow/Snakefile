@@ -9,3 +9,4 @@ rule testrule:
     "envs/test_env.yaml"
   shell:
     'echo "Hello World!"'
+#this is a workflow that's so cool
