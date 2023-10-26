@@ -1,0 +1,20 @@
+#Samplename	Treatment	Strand	Read1	Read2	runid	Groups
+A	F	+	A_S20_L001_R1_001.fastq	A_S20_L001_R2_001.fastq	1	Juvenile
+B	M	+	B_S21_L001_R1_001.fastq	B_S21_L001_R2_001.fastq	1	Juvenile
+C	F	+	C_S22_L001_R1_001.fastq	C_S22_L001_R2_001.fastq	1	Juvenile
+D	F	+	D_S23_L001_R1_001.fastq	D_S23_L001_R2_001.fastq	1	Juvenile
+E	M	+	E_S24_L001_R1_001.fastq	E_S24_L001_R2_001.fastq	1	Adult
+F	M	+	F_S25_L001_R1_001.fastq	F_S25_L001_R2_001.fastq	1	Mature
+G	M	+	G_S26_L001_R1_001.fastq	G_S26_L001_R2_001.fastq	1	Mature
+H	M	+	H_S27_L001_R1_001.fastq	H_S27_L001_R2_001.fastq	1	Mature
+I	F	+	I_S28_L001_R1_001.fastq	I_S28_L001_R2_001.fastq	1	Adult
+J	M	+	J_S29_L001_R1_001.fastq	J_S29_L001_R2_001.fastq	1	
+K	F	+	K_S30_L001_R1_001.fastq	K_S30_L001_R2_001.fastq	1	Juvenile
+
+
+
+
+
+
+
+

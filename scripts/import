@@ -1,0 +1,5 @@
+qiime tools import \
+	--type 'SampleData[PairedEndSequencesWithQuality]' \
+	--input-path dog_manifest.tsv \
+	--input-format PairedEndFastqManifestPhred33V2 \
+	--output-path artifacts/demuxed-paired-end.qza
