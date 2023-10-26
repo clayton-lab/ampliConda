@@ -10,3 +10,111 @@ rule testrule:
   shell:
     'echo "Hello World!"'
 #this is a workflow that's so cool
+configfile: "config/config.yaml"
+
+rule import:
+    input:
+ #       "{sample}.fastq",
+        "dog_manifest.tsv"
+    output:
+        "artifacts/demux-paired-end.qza"
+    shell:
+        "scripts/import.py"
+
+rule demux_summarize:
+    input:
+        "artifacts/demux-paired-end.qza"
+    output:
+        "artifacts/demux-paired-end.qzv"
+    shell:
+        "scripts/demux_summarize.py,echo 'starting dada2: `date`'"
+
+# rule trim_paired:
+#    input:
+#        "artifacts/demuxed-paired-end.qza"
+#    output:
+#        "artifcats/paired-end-demux-trimmed.qza"
+#    shell:
+#        "scripts/trim_paired.py"
+
+# rule trimmed_summarize:
+#    input:
+#        "artifcats/paired-end-demux-trimmed.qza"
+#    output:
+#        "artifacts/paired-end-demux-trimmed.qzv"
+#    shell:
+#        "scripts/trimmed_summarize.py"
+
+rule denoise_paired:
+    input:
+        "artifacts/demux-paired-end.qza"
+    output:
+        "artifacts/table.qza",
+        "artifacts/rep-seqs.qza",
+        "artifacts/denoising-stats.qza"
+    shell:
+        "scripts/denoise_paired.py,echo 'dada2 complete: `date`'" #Not all output, log and benchmark files of rule denoise_paired contain the same wildcards. This is crucial though, in order to avoid that two or more jobs write to the same file.
+
+rule metadata_tabulate:
+    input:
+        "artifacts/denoising-stats.qza"
+    output:
+        "artifacts/denoising-stats-viz-qzv"
+    shell:
+        "scripts/metadata_tabulate.py"
+
+## dry run works up to here
+
+rule filter_samples:
+    input:
+        "artifacts/table.qza",
+        "dog_manifest.tsv"
+    output:
+        "artifacts/filtered-table.qza"
+    shell:
+        "scripts/filter_samples.py"
+
+rule feature_table_summarize:
+    input:
+        "artifacts/filtered-table.qza",
+        "dog_manifest.tsv"
+    output:
+        "artifacts/table-viz.qzv"
+    shell:
+        "scripts/feature_table_summarize.py"
+
+rule tabulate_seqs:
+    input:
+        "artifacts/rep-seqs.qza"
+    output:
+        "artifacts/rep-seqs.qzv"
+    shell:
+        "scripts/tabulate_seqs.py,echo 'starting mafft fasttree and diversity operations'"
+
+rule mafft_fasttree:
+    input:
+        "artifacts/rep-seqs.qza"
+    output:
+        "aligned-rep-seqs.qza",
+        "artifacts/masked-aligned-rep-seqs.qza",
+        "artifacts/unrooted-tree.qza",
+        "artifacts/rooted-tree.qza"
+    shell:
+        "scripts/mafft_fasttree.py"
+
+rule classify_sklearn:
+    input:
+        "classifier/silva-138-99-nb-classifier.qza", #put in classifier here
+        "artifacts/rep-seqs.qza"
+    output:
+        "artifacts/taxonomy.qza"
+    shell:
+        "scripts/classify_sklearn.py"
+
+rule phylogeny_tabulate:
+    input:
+        "artifacts/taxonomy.qza"
+    output:
+        "artifacts/taxonomy.qzv"
+    shell:
+        "scripts/phylogeny_tabulate.py"
