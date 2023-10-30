@@ -104,7 +104,7 @@ rule mafft_fasttree:
 
 rule classify_sklearn:
     input:
-        "classifier/silva-138-99-nb-classifier.qza", #put in classifier here
+        "$(classifier)", #put in classifier here
         "artifacts/rep-seqs.qza"
     output:
         "artifacts/taxonomy.qza"
@@ -118,3 +118,45 @@ rule phylogeny_tabulate:
         "artifacts/taxonomy.qzv"
     shell:
         "scripts/phylogeny_tabulate.py"
+        
+rule core_metrics_phylogenetic:
+    input:
+        "artifacts/rooted-tree.qza",
+        "artifacts/table.qza",
+        "$(sampling_depth)",
+        "Dog_metadata.tsv"
+    output:
+        "core-metrics-results/"
+    shell:
+        "scripts/core_metrics_phylogenetic.py"
+
+rule bray_curtis:
+    input:
+        "core-metrics-results/bray_curtis_distance_matrix.qza"
+    output:
+        "artifacts/bray-curtis-pcoa-matrix.qza"
+    shell:
+        "scripts/bray_curtis.py"
+
+rule unweighted_unifrac:
+    input:
+        "core-metrics-results/unweighted_unifrac_distance_matrix.qza"
+    output:
+        "artifacts/unweighted-unifrac-pcoa-matrix.qza"
+    shell:
+        "scripts/unweighted_unifrac.py"
+
+rule weighted_unifrac:
+    input:
+        "core-metrics-results/weighted_unifrac_distance_matrix.qza"
+    output:
+        "artifacts/weighted-unifrac-pcoa-matrix.qza"
+    shell:
+        "scripts/weighted_unifrac.py"
+rule jaccard:
+    input:
+        "core-metrics-results/jaccard_distance_matrix.qza"
+    output:
+        "artifacts/jaccard-pcoa-matrix.qza"
+    shell:
+        "scripts/jaccard.py"
