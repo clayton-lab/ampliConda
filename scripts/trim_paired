@@ -1,6 +1,0 @@
-qiime cutadapt trim-paired \
-    --i-demultiplexed-sequences artifacts/demuxed-paired-end.qza \
-    --p-front-f CCTACGGGNGGCWGCAG \
-    --p-front-r GACTACHVGGGTATCTAATCC \
-    --o-trimmed-sequences artifacts/paired-end-demux-trimmed.qza \
-    --verbose > cutadapt_log.txt \

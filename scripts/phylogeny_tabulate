@@ -1,3 +1,0 @@
-qiime metadata tabulate \
-        --m-input-file artifacts/taxonomy.qza \
-        --o-visualization artifacts/taxonomy.qzv

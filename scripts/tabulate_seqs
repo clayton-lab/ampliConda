@@ -1,3 +1,0 @@
-qiime feature-table tabulate-seqs \
-        --i-data artifacts/rep-seqs.qza \
-        --o-visualization artifacts/rep-seqs.qzv

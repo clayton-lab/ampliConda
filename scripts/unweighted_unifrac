@@ -1,4 +1,0 @@
-qiime diversity pcoa \
-        --i-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza \
-        --p-number-of-dimensions 2 \
-        --o-pcoa artifacts/unweighted-unifrac-pcoa-matrix.qza

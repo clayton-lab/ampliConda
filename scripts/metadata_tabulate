@@ -1,3 +1,0 @@
-qiime metadata tabulate \
-       --m-input-file artifacts/denoising-stats.qza \
-        --o-visualization artifacts/denoising-stats-viz.qzv

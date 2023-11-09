@@ -2,32 +2,40 @@
 # Please follow the best practices: 
 # https://snakemake.readthedocs.io/en/stable/snakefiles/best_practices.html,
 # in particular regarding the standardized folder structure mentioned there. 
-rule testrule:
-  log:
-    "logs/test.log"
-  conda:
-    "envs/test_env.yaml"
-  shell:
-    'echo "Hello World!"'
-#this is a workflow that's so cool
 configfile: "config/config.yaml"
+
+
+rule setup:
+    shell: "import qiime2
+from tempfile import mkdtemp
+from qiime2.plugins import demux, deblur, quality_filter, \
+                           metadata, feature_table, alignment, \
+                           phylogeny, diversity, emperor, feature_classifier, \
+                           taxa, composition
 
 rule import:
     input:
- #       "{sample}.fastq",
-        "dog_manifest.tsv"
+        "dog_fastq/"
     output:
         "artifacts/demux-paired-end.qza"
+    conda:
+        "../envs/qiime2.yml"
+    log:
+        ".snakemake/log/import.log"
     shell:
-        "scripts/import.py"
+        "python workflow/scripts/import.py > {input} {output} {log}"
 
 rule demux_summarize:
     input:
         "artifacts/demux-paired-end.qza"
     output:
         "artifacts/demux-paired-end.qzv"
+    conda:
+        "../envs/qiime2.yml"
+    log:
+        "../.snakemake/log/demux_summarize.log"
     shell:
-        "scripts/demux_summarize.py,echo 'starting dada2: `date`'"
+        "scripts/demux_summarize.py; echo 'starting dada2: `date`'"
 
 # rule trim_paired:
 #    input:
@@ -153,6 +161,7 @@ rule weighted_unifrac:
         "artifacts/weighted-unifrac-pcoa-matrix.qza"
     shell:
         "scripts/weighted_unifrac.py"
+
 rule jaccard:
     input:
         "core-metrics-results/jaccard_distance_matrix.qza"

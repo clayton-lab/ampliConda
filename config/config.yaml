@@ -1,2 +1,5 @@
-samples:
-  "dog_manifest.tsv"
+samples: "dog_manifest.tsv"
+
+workdir: '/common/claytonlab/cschinzel/repos/ampliConda'
+command 2>&1 > logresults
+

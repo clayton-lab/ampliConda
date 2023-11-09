@@ -1,4 +1,0 @@
-qiime feature-table summarize \
-        --i-table artifacts/table.qza \
-        --o-visualization artifacts/table-viz.qzv \
-        --m-sample-metadata-file dog_manifest.tsv
