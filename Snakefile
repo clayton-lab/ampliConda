@@ -1,0 +1,176 @@
+# Main entrypoint of the workflow. 
+# Please follow the best practices: 
+# https://snakemake.readthedocs.io/en/stable/snakefiles/best_practices.html,
+# in particular regarding the standardized folder structure mentioned there. 
+import pandas as pd
+
+configfile: "config/config.yaml"
+
+rule setup:
+    shell:
+        "module load qiime2/2022.2 "
+        "module load snakemake/6.4"
+
+rule import:
+    input:
+        "data/paired_end_manifest.tsv"
+    output:
+        "artifacts/demux-paired-end.qza"
+    conda:
+        "qiime2-2022.2"
+    log:
+        "logs/import{`date`}.log"
+    shell:
+        "qiime tools import "
+        "--type 'SampleData[PairedEndSequencesWithQuality]' "
+        "--input-path {input} "
+        "--output-path {output} "
+        "--input-format PairedEndFastqManifestPhred33V2"
+
+rule demux_summarize:
+    input:
+        "artifacts/demux-paired-end.qza"
+    output:
+        "artifacts/demux-paired-end.qzv"
+    conda:
+        "envs/qiime2.yml"
+    log:
+        ".snakemake/log/demux_summarize.log"
+    shell:
+        "qiime demux summarize "
+	    "--i-data artifacts/demuxed-paired-end.qza "
+	    "--o-visualization artifacts/demux.qzv "
+        "2> {log} 1>&2"
+
+rule trim_paired:
+    input:
+        "artifacts/demuxed-paired-end.qza"
+    output:
+        "artifcats/paired-end-demux-trimmed.qza"
+    shell:
+        "scripts/trim_paired.py"
+
+rule trimmed_summarize:
+    input:
+        "artifcats/paired-end-demux-trimmed.qza"
+    output:
+        "artifacts/paired-end-demux-trimmed.qzv"
+    shell:
+        "scripts/trimmed_summarize.py"
+
+rule denoise_paired:
+    input:
+        "artifacts/demux-paired-end.qza"
+    output:
+        "artifacts/table.qza",
+        "artifacts/rep-seqs.qza",
+        "artifacts/denoising-stats.qza"
+    shell:
+        "scripts/denoise_paired.py,echo 'dada2 complete: `date`'" #Not all output, log and benchmark files of rule denoise_paired contain the same wildcards. This is crucial though, in order to avoid that two or more jobs write to the same file.
+
+rule metadata_tabulate:
+    input:
+        "artifacts/denoising-stats.qza"
+    output:
+        "artifacts/denoising-stats-viz-qzv"
+    shell:
+        "scripts/metadata_tabulate.py"
+
+## dry run works up to here
+
+rule filter_samples:
+    input:
+        "artifacts/table.qza",
+        "dog_manifest.tsv"
+    output:
+        "artifacts/filtered-table.qza"
+    shell:
+        "scripts/filter_samples.py"
+
+rule feature_table_summarize:
+    input:
+        "artifacts/filtered-table.qza",
+        "dog_manifest.tsv"
+    output:
+        "artifacts/table-viz.qzv"
+    shell:
+        "scripts/feature_table_summarize.py"
+
+rule tabulate_seqs:
+    input:
+        "artifacts/rep-seqs.qza"
+    output:
+        "artifacts/rep-seqs.qzv"
+    shell:
+        "scripts/tabulate_seqs.py,echo 'starting mafft fasttree and diversity operations'"
+
+rule mafft_fasttree:
+    input:
+        "artifacts/rep-seqs.qza"
+    output:
+        "aligned-rep-seqs.qza",
+        "artifacts/masked-aligned-rep-seqs.qza",
+        "artifacts/unrooted-tree.qza",
+        "artifacts/rooted-tree.qza"
+    shell:
+        "scripts/mafft_fasttree.py"
+
+rule classify_sklearn:
+    input:
+        "$(classifier)", #put in classifier here
+        "artifacts/rep-seqs.qza"
+    output:
+        "artifacts/taxonomy.qza"
+    shell:
+        "scripts/classify_sklearn.py"
+
+rule phylogeny_tabulate:
+    input:
+        "artifacts/taxonomy.qza"
+    output:
+        "artifacts/taxonomy.qzv"
+    shell:
+        "scripts/phylogeny_tabulate.py"
+        
+rule core_metrics_phylogenetic:
+    input:
+        "artifacts/rooted-tree.qza",
+        "artifacts/table.qza",
+        "$(sampling_depth)",
+        "Dog_metadata.tsv"
+    output:
+        "core-metrics-results/"
+    shell:
+        "scripts/core_metrics_phylogenetic.py"
+
+rule bray_curtis:
+    input:
+        "core-metrics-results/bray_curtis_distance_matrix.qza"
+    output:
+        "artifacts/bray-curtis-pcoa-matrix.qza"
+    shell:
+        "scripts/bray_curtis.py"
+
+rule unweighted_unifrac:
+    input:
+        "core-metrics-results/unweighted_unifrac_distance_matrix.qza"
+    output:
+        "artifacts/unweighted-unifrac-pcoa-matrix.qza"
+    shell:
+        "scripts/unweighted_unifrac.py"
+
+rule weighted_unifrac:
+    input:
+        "core-metrics-results/weighted_unifrac_distance_matrix.qza"
+    output:
+        "artifacts/weighted-unifrac-pcoa-matrix.qza"
+    shell:
+        "scripts/weighted_unifrac.py"
+
+rule jaccard:
+    input:
+        "core-metrics-results/jaccard_distance_matrix.qza"
+    output:
+        "artifacts/jaccard-pcoa-matrix.qza"
+    shell:
+        "scripts/jaccard.py"
