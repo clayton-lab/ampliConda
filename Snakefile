@@ -19,7 +19,7 @@ rule import:
     conda:
         "qiime2-2022.2"
     log:
-        "logs/import{`date`}.log"
+        ".snakemake/log/import.log"
     shell:
         "qiime tools import "
         "--type 'SampleData[PairedEndSequencesWithQuality]' "
@@ -38,8 +38,8 @@ rule demux_summarize:
         ".snakemake/log/demux_summarize.log"
     shell:
         "qiime demux summarize "
-	    "--i-data artifacts/demuxed-paired-end.qza "
-	    "--o-visualization artifacts/demux.qzv "
+	    "--i-data {input} "
+	    "--o-visualization {output} "
         "2> {log} 1>&2"
 
 rule trim_paired:
