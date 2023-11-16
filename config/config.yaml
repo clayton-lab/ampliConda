@@ -1,2 +1,13 @@
 samples: 
   "dog_manifest.tsv"
+
+
+
+trunc-len-f:
+  "270"
+trunc-len-r:
+  "230"
+trim-left-f:
+  "10"
+trim-left-r:
+  "10"

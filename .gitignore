@@ -3,6 +3,7 @@ resources/**
 logs/**
 .snakemake
 .snakemake/**
+*.fastq.gz
 
 # Backup files created by vim
 *.un

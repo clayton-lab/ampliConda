@@ -6,10 +6,12 @@ import pandas as pd
 
 configfile: "config/config.yaml"
 
-rule setup:
-    shell:
-        "module load qiime2/2022.2 "
-        "module load snakemake/6.4"
+# still working on this rule
+#rule setup:
+#    shell:
+#        "module load qiime2/2022.2 "
+#        "module load snakemake/6.4 "
+#        "module load R/4.3"
 
 rule import:
     input:
@@ -17,7 +19,7 @@ rule import:
     output:
         "artifacts/demux-paired-end.qza"
     conda:
-        "qiime2-2022.2"
+        "envs/qiime2.yml"
     log:
         ".snakemake/log/import.log"
     shell:
@@ -39,53 +41,55 @@ rule demux_summarize:
     shell:
         "qiime demux summarize "
 	    "--i-data {input} "
-	    "--o-visualization {output} "
-        "2> {log} 1>&2"
+	    "--o-visualization {output}"
 
-rule trim_paired:
-    input:
-        "artifacts/demuxed-paired-end.qza"
-    output:
-        "artifcats/paired-end-demux-trimmed.qza"
-    shell:
-        "scripts/trim_paired.py"
-
-rule trimmed_summarize:
-    input:
-        "artifcats/paired-end-demux-trimmed.qza"
-    output:
-        "artifacts/paired-end-demux-trimmed.qzv"
-    shell:
-        "scripts/trimmed_summarize.py"
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~AT THIS POINT, INVESTIGATE THE demux-paired-end.qzv file to specify your trimming parameters~~~~~~~~~~~~~~~~
 
 rule denoise_paired:
     input:
         "artifacts/demux-paired-end.qza"
     output:
-        "artifacts/table.qza",
-        "artifacts/rep-seqs.qza",
+        "artifacts/paired-end-demux-trimmed.qza "
+        "artifacts/table.qza "
         "artifacts/denoising-stats.qza"
+    conda:
+        "envs/qiime2.yml"
     shell:
-        "scripts/denoise_paired.py,echo 'dada2 complete: `date`'" #Not all output, log and benchmark files of rule denoise_paired contain the same wildcards. This is crucial though, in order to avoid that two or more jobs write to the same file.
+        "qiime dada2 denoise-paired "
+        "--i-demultiplexed-seqs {input}"
+        "--p-trunc-len-f 270 "
+        "--p-trunc-len-r 230 "
+        "--p-trim-left-f 110 "
+        "--p-trim-left-r 75 "
+        "--o-table artifacts/table.qza "
+        "--o-representative-sequences artifacts/paired-end-demux-trimmed.qza "
+        "--o-denoising-stats artifacts/denoising-stats.qza"
+
+rule trimmed_summarize:
+    input:
+        "artifacts/paired-end-demux-trimmed.qza"
+    output:
+        "artifacts/paired-end-demux-trimmed.qzv"
+    conda:
+        "envs/qiime2.yml"
+    shell:
+        "qiime demux summarize " 
+        "--i-data {input} "
+	    "--o-visualization {output}"
 
 rule metadata_tabulate:
     input:
         "artifacts/denoising-stats.qza"
     output:
         "artifacts/denoising-stats-viz-qzv"
+    conda:
+        "envs/qiime2.yml"
     shell:
-        "scripts/metadata_tabulate.py"
+        "qiime metadata tabulate "
+        "--m-input-file {input} "
+        "--o-visualization {output}"
 
-## dry run works up to here
-
-rule filter_samples:
-    input:
-        "artifacts/table.qza",
-        "dog_manifest.tsv"
-    output:
-        "artifacts/filtered-table.qza"
-    shell:
-        "scripts/filter_samples.py"
+## workflow functions up to this point with data ############################################################################################
 
 rule feature_table_summarize:
     input:
