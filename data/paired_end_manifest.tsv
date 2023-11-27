@@ -1,0 +1,12 @@
+sample-id	forward-absolute-filepath	reverse-absolute-filepath
+A	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/A_S20_L001_R1_001.fastq.gz	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/A_S20_L001_R2_001.fastq.gz
+B	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/B_S21_L001_R1_001.fastq.gz	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/B_S21_L001_R2_001.fastq.gz
+C	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/C_S22_L001_R1_001.fastq.gz	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/C_S22_L001_R2_001.fastq.gz
+D	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/D_S23_L001_R1_001.fastq.gz	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/D_S23_L001_R2_001.fastq.gz
+E	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/E_S24_L001_R1_001.fastq.gz	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/E_S24_L001_R2_001.fastq.gz
+F	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/F_S25_L001_R1_001.fastq.gz	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/F_S25_L001_R2_001.fastq.gz
+G	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/G_S26_L001_R1_001.fastq.gz	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/G_S26_L001_R2_001.fastq.gz
+H	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/H_S27_L001_R1_001.fastq.gz	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/H_S27_L001_R2_001.fastq.gz
+I	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/I_S28_L001_R1_001.fastq.gz	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/I_S28_L001_R2_001.fastq.gz
+J	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/J_S29_L001_R1_001.fastq.gz	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/J_S29_L001_R2_001.fastq.gz
+K	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/K_S30_L001_R1_001.fastq.gz	/common/claytonlab/cschinzel/repos/ampliConda/data/reads/K_S30_L001_R2_001.fastq.gz

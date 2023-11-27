@@ -1,0 +1,4 @@
+qiime diversity pcoa \
+        --i-distance-matrix core-metrics-results/bray_curtis_distance_matrix.qza \
+        --p-number-of-dimensions 2 \
+        --o-pcoa artifacts/bray-curtis-pcoa-matrix.qza

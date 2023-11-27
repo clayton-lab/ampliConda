@@ -1,0 +1,3 @@
+qiime demux summarize \
+    --i-data artifacts/demux-paired-end.qza \
+	--o-visualization artifacts/demux-paired-end.qzv

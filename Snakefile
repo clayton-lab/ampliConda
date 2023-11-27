@@ -6,6 +6,17 @@ import pandas as pd
 
 configfile: "config/config.yaml"
 
+if config["Qiime2"]:
+    target = #insert target artifacts here
+elif config["DADA2"]:
+    target = #insert target 
+elif config["Mothur"]:
+    target = #target
+elif config["Pathoscope2"]:
+    target = #target
+else config["Kraken"]:
+    target = #target
+
 # still working on this rule
 #rule setup:
 #    shell:
@@ -13,9 +24,15 @@ configfile: "config/config.yaml"
 #        "module load snakemake/6.4 "
 #        "module load R/4.3"
 
-rule import:
+rule all:
     input:
-        "data/paired_end_manifest.tsv"
+        target
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGINNING OF QIIME2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rule qiime2_import:
+    input:
+        config["manifest"]
     output:
         "artifacts/demux-paired-end.qza"
     conda:
@@ -29,7 +46,7 @@ rule import:
         "--output-path {output} "
         "--input-format PairedEndFastqManifestPhred33V2"
 
-rule demux_summarize:
+rule qiime2_demux_summarize:
     input:
         "artifacts/demux-paired-end.qza"
     output:
@@ -43,29 +60,33 @@ rule demux_summarize:
 	    "--i-data {input} "
 	    "--o-visualization {output}"
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~AT THIS POINT, INVESTIGATE THE demux-paired-end.qzv file to specify your trimming parameters~~~~~~~~~~~~~~~~
+#AT THIS POINT, INVESTIGATE THE demux-paired-end.qzv file to specify your trimming parameters
 
-rule denoise_paired:
+rule qiime2_denoise_paired:
     input:
         "artifacts/demux-paired-end.qza"
     output:
         "artifacts/paired-end-demux-trimmed.qza "
         "artifacts/table.qza "
         "artifacts/denoising-stats.qza"
+    params:
+        trunc-len-f = config["trunc-len-f"]
+        trunc-len-r = config["trunc-len-r"]
     conda:
         "envs/qiime2.yml"
     shell:
         "qiime dada2 denoise-paired "
         "--i-demultiplexed-seqs {input}"
-        "--p-trunc-len-f 270 "
+        "--p-trunc-len-f 260 "
         "--p-trunc-len-r 230 "
-        "--p-trim-left-f 110 "
-        "--p-trim-left-r 75 "
+        "--p-trim-left-f 112 "
+        "--p-trim-left-r 77 "
         "--o-table artifacts/table.qza "
         "--o-representative-sequences artifacts/paired-end-demux-trimmed.qza "
-        "--o-denoising-stats artifacts/denoising-stats.qza"
+        "--o-denoising-stats artifacts/denoising-stats.qza "
+        "--p-n-threads 4" #subject to change, may make into a wildcard
 
-rule trimmed_summarize:
+rule qiime2_trimmed_summarize:
     input:
         "artifacts/paired-end-demux-trimmed.qza"
     output:
@@ -77,11 +98,13 @@ rule trimmed_summarize:
         "--i-data {input} "
 	    "--o-visualization {output}"
 
-rule metadata_tabulate:
+# DADA2 return code -9 is a memory issue; run with more cores
+
+rule qiime2_metadata_tabulate:
     input:
-        "artifacts/denoising-stats.qza"
+        "data/paired_end_metadata.tsv" # must be a .tsv NOT a .csv
     output:
-        "artifacts/denoising-stats-viz-qzv"
+        "artifacts/metadata_tabulated.qzv"
     conda:
         "envs/qiime2.yml"
     shell:
@@ -89,42 +112,56 @@ rule metadata_tabulate:
         "--m-input-file {input} "
         "--o-visualization {output}"
 
-## workflow functions up to this point with data ############################################################################################
-
 rule feature_table_summarize:
     input:
         "artifacts/filtered-table.qza",
-        "dog_manifest.tsv"
+        "data/paired_end_metadata.tsv"
     output:
         "artifacts/table-viz.qzv"
+    conda:
+        "envs/qiime2.yml"
     shell:
-        "scripts/feature_table_summarize.py"
+        "qiime feature-table summarize "
+        "--i-table artifacts/table.qza ""
+        "--o-visualization artifacts/table-viz.qzv "
+        "--m-sample-metadata-file data/paired_end_metadata.tsv"
 
 rule tabulate_seqs:
     input:
-        "artifacts/rep-seqs.qza"
+        "artifacts/demux-paired-end.qza"
     output:
-        "artifacts/rep-seqs.qzv"
+        "artifacts/demux-paired-end.qzv"
     shell:
-        "scripts/tabulate_seqs.py,echo 'starting mafft fasttree and diversity operations'"
+        "qiime feature-table tabulate-seqs "
+        "--i-data {input} "
+        "--o-visualization {output}"
 
 rule mafft_fasttree:
     input:
-        "artifacts/rep-seqs.qza"
+        "artifacts/paired-end-demux-trimmed.qza"
     output:
         "aligned-rep-seqs.qza",
         "artifacts/masked-aligned-rep-seqs.qza",
         "artifacts/unrooted-tree.qza",
         "artifacts/rooted-tree.qza"
     shell:
-        "scripts/mafft_fasttree.py"
+        "qiime phylogeny align-to-tree-mafft-fasttree "
+        "--i-sequences {input} "
+        "--o-alignment artifacts/aligned-rep-seqs.qza "
+        "--o-masked-alignment artifacts/masked-aligned-rep-seqs.qza "
+        "--o-tree artifacts/unrooted-tree.qza "
+        "--o-rooted-tree artifacts/rooted-tree.qza"
+
+## workflow functions up to this point with data ############################################################################################
 
 rule classify_sklearn:
     input:
-        "$(classifier)", #put in classifier here
+        "{classifier}", #put in classifier here
         "artifacts/rep-seqs.qza"
     output:
         "artifacts/taxonomy.qza"
+    params:
+        classifier = config["classifier"]
     shell:
         "scripts/classify_sklearn.py"
 
@@ -178,3 +215,8 @@ rule jaccard:
         "artifacts/jaccard-pcoa-matrix.qza"
     shell:
         "scripts/jaccard.py"
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END OF QIIME2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGINNING OF DADA2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

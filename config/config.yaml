@@ -1,7 +1,18 @@
-samples: 
-  "dog_manifest.tsv"
+manifest: 
+  "data/paired_end_manifest.tsv"
 
+# tools
+"DADA2": false,
+"Qiime2": true,
+"Mothur": false,
+"Pathoscope2": false,
+"Kraken": false,
 
+classifier:
+  "Greengenes"
+  "Silva"
+  "Kraken2"
+  "RefSeq"
 
 trunc-len-f:
   "270"

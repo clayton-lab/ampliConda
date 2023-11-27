@@ -1,6 +1,7 @@
 results/**
 resources/**
 logs/**
+artifacts/**
 .snakemake
 .snakemake/**
 *.fastq.gz

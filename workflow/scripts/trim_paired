@@ -1,0 +1,11 @@
+qiime dada2 denoise-paired \
+--i-demultiplexed-seqs artifacts/demux-paired-end.qza \
+--p-trunc-len-f 260 \
+--p-trunc-len-r 230 \
+--p-trim-left-f 112 \
+--p-trim-left-r 77 \
+--o-table artifacts/table.qza \
+--o-representative-sequences artifacts/paired-end-demux-trimmed.qza \
+--o-denoising-stats artifacts/denoising-stats.qza \
+--p-n-threads 1 \
+--verbose

@@ -1,0 +1,13 @@
+p_trim_left_f=5
+p_trim_left_r=5
+p_trunc_len_f=264
+p_trunc_len_r=207
+
+qiime dada2 denoise-paired \
+	--i-demultiplexed-seqs artifacts/demuxed-paired-end.qza \
+	--p-trunc-len-f $p_trunc_len_f \
+	--p-trunc-len-r $p_trunc_len_r \
+	--p-n-threads $n_threads \
+	--o-table artifacts/table.qza \
+	--o-representative-sequences artifacts/rep-seqs.qza \
+	--o-denoising-stats artifacts/denoising-stats.qza
