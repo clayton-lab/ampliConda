@@ -1,18 +1,20 @@
 manifest: 
   "data/paired_end_manifest.tsv"
 
-# tools
-"DADA2": false,
-"Qiime2": true,
-"Mothur": false,
-"Pathoscope2": false,
-"Kraken": false,
+tools:
+  #"DADA2"
+  Qiime2:
+    #- "artifacts/taxonomy.qza"
+    - "artifacts/unweighted-unifrac-pcoa-matrix.qza"
+  #Mothur:
+  #Pathoscope2:
+  #Kraken:
 
 classifier:
-  "Greengenes"
-  "Silva"
-  "Kraken2"
-  "RefSeq"
+  "Greengenes": false
+  "Silva": true
+  "Kraken2": false
+  "RefSeq": false
 
 trunc-len-f:
   "270"

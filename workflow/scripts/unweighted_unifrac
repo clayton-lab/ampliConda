@@ -2,3 +2,17 @@ qiime diversity pcoa \
         --i-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza \
         --p-number-of-dimensions 2 \
         --o-pcoa artifacts/unweighted-unifrac-pcoa-matrix.qza
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza \
+  --m-metadata-file data/paired_end_metadata.tsv \
+  --m-metadata-column Groups \
+  --o-visualization core-metrics-results/unweighted-unifrac-Group-significance.qzv \
+  --p-pairwise
+
+qiime diversity beta-group-significance \
+  --i-distance-matrix core-metrics-results/bray_curtis_distance_matrix.qza \
+  --m-metadata-file data/paired_end_metadata.tsv \
+  --m-metadata-column Groups \
+  --o-visualization core-metrics-results/bray-curtis-Group-significance.qzv \
+  --p-pairwise

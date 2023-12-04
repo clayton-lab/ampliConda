@@ -5,6 +5,8 @@ artifacts/**
 .snakemake
 .snakemake/**
 *.fastq.gz
+classifier/**
+core-metrics-results/**
 
 # Backup files created by vim
 *.un

@@ -6,17 +6,6 @@ import pandas as pd
 
 configfile: "config/config.yaml"
 
-if config["Qiime2"]:
-    target = #insert target artifacts here
-elif config["DADA2"]:
-    target = #insert target 
-elif config["Mothur"]:
-    target = #target
-elif config["Pathoscope2"]:
-    target = #target
-else config["Kraken"]:
-    target = #target
-
 # still working on this rule
 #rule setup:
 #    shell:
@@ -24,12 +13,13 @@ else config["Kraken"]:
 #        "module load snakemake/6.4 "
 #        "module load R/4.3"
 
+
 rule all:
     input:
         target
 
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGINNING OF QIIME2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGINNING OF QIIME2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rule qiime2_import:
     input:
         config["manifest"]
@@ -64,14 +54,11 @@ rule qiime2_demux_summarize:
 
 rule qiime2_denoise_paired:
     input:
-        "artifacts/demux-paired-end.qza"
+        "artifacts/demuxed-paired-end.qza"
     output:
         "artifacts/paired-end-demux-trimmed.qza "
         "artifacts/table.qza "
         "artifacts/denoising-stats.qza"
-    params:
-        trunc-len-f = config["trunc-len-f"]
-        trunc-len-r = config["trunc-len-r"]
     conda:
         "envs/qiime2.yml"
     shell:
@@ -122,7 +109,7 @@ rule feature_table_summarize:
         "envs/qiime2.yml"
     shell:
         "qiime feature-table summarize "
-        "--i-table artifacts/table.qza ""
+        "--i-table artifacts/table.qza "
         "--o-visualization artifacts/table-viz.qzv "
         "--m-sample-metadata-file data/paired_end_metadata.tsv"
 
@@ -156,14 +143,15 @@ rule mafft_fasttree:
 
 rule classify_sklearn:
     input:
-        "{classifier}", #put in classifier here
-        "artifacts/rep-seqs.qza"
+        classifier = "classifier/silva-138-99-nb-classifier.qza",
+        seq = "artifacts/rep-seqs.qza"
     output:
         "artifacts/taxonomy.qza"
-    params:
-        classifier = config["classifier"]
     shell:
-        "scripts/classify_sklearn.py"
+        "qiime feature-classifier classify-sklearn "
+        "--i-classifier {input.classifier} "
+        "--i-reads {input.seq} "
+        "--o-classification artifacts/taxonomy.qza"
 
 rule phylogeny_tabulate:
     input:
@@ -171,13 +159,15 @@ rule phylogeny_tabulate:
     output:
         "artifacts/taxonomy.qzv"
     shell:
-        "scripts/phylogeny_tabulate.py"
+        "qiime metadata tabulate "
+        "--m-input-file artifacts/taxonomy.qza "
+        "--o-visualization artifacts/taxonomy.qzv"
         
 rule core_metrics_phylogenetic:
     input:
         "artifacts/rooted-tree.qza",
         "artifacts/table.qza",
-        "$(sampling_depth)",
+        config = config["sampling_depth"],#download the table.qzv file to choose a proper sampling depth
         "Dog_metadata.tsv"
     output:
         "core-metrics-results/"
@@ -215,7 +205,7 @@ rule jaccard:
         "artifacts/jaccard-pcoa-matrix.qza"
     shell:
         "scripts/jaccard.py"
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END OF QIIME2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END OF QIIME2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
 
