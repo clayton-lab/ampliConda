@@ -13,11 +13,11 @@ configfile: "config/config.yaml"
 #        "module load snakemake/6.4 "
 #        "module load R/4.3"
 
+target = "core-metrics-results/faith_pd.qzv"
 
 rule all:
     input:
         target
-
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGINNING OF QIIME2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rule qiime2_import:
@@ -54,10 +54,10 @@ rule qiime2_demux_summarize:
 
 rule qiime2_denoise_paired:
     input:
-        "artifacts/demuxed-paired-end.qza"
+        "artifacts/demux-paired-end.qza"
     output:
-        "artifacts/paired-end-demux-trimmed.qza "
-        "artifacts/table.qza "
+        "artifacts/paired-end-demux-trimmed.qza",
+        "artifacts/table.qza",
         "artifacts/denoising-stats.qza"
     conda:
         "envs/qiime2.yml"
@@ -65,7 +65,7 @@ rule qiime2_denoise_paired:
         "qiime dada2 denoise-paired "
         "--i-demultiplexed-seqs {input}"
         "--p-trunc-len-f 260 "
-        "--p-trunc-len-r 230 "
+        "--p-trunc-len-r 230 " #modularization
         "--p-trim-left-f 112 "
         "--p-trim-left-r 77 "
         "--o-table artifacts/table.qza "
@@ -162,49 +162,75 @@ rule phylogeny_tabulate:
         "qiime metadata tabulate "
         "--m-input-file artifacts/taxonomy.qza "
         "--o-visualization artifacts/taxonomy.qzv"
-        
+
 rule core_metrics_phylogenetic:
     input:
         "artifacts/rooted-tree.qza",
         "artifacts/table.qza",
-        config = config["sampling_depth"],#download the table.qzv file to choose a proper sampling depth
-        "Dog_metadata.tsv"
+        "data/paired_end_metadata.tsv"
     output:
-        "core-metrics-results/"
+        "core-metrics-results/bray_curtis_distance_matrix.qza",
+        "core-metrics-results/unweighted_unifrac_distance_matrix.qza",
+        "core-metrics-results/evenness_vector.qza",
+        "core-metrics-results/faith_pd_vector.qza"
+    params:
+        config = 1103 #config["sampling_depth"],#download the table.qzv file to choose a proper sampling depth"
     shell:
-        "scripts/core_metrics_phylogenetic.py"
+        "qiime diversity core-metrics-phylogenetic "
+        "--i-phylogeny rooted-tree.qza "
+        "--i-table table.qza "
+        "--p-sampling-depth {params.config} " #should be 1103
+        "--m-metadata-file sample-metadata.tsv "
+        "--output-dir core-metrics-results"
 
-rule bray_curtis:
+rule bray_curtis_beta:
     input:
         "core-metrics-results/bray_curtis_distance_matrix.qza"
     output:
         "artifacts/bray-curtis-pcoa-matrix.qza"
     shell:
-        "scripts/bray_curtis.py"
+        "qiime diversity beta-group-significance "
+        "--i-distance-matrix core-metrics-results/bray_curtis_distance_matrix.qza "
+        "--m-metadata-file data/paired_end_metadata.tsv "
+        "--m-metadata-column Groups " #another thing that we can modularize
+        "--o-visualization core-metrics-results/bray-curtis-Group-significance.qzv "
+        "--p-pairwise"
 
-rule unweighted_unifrac:
+rule unweighted_unifrac_beta:
     input:
         "core-metrics-results/unweighted_unifrac_distance_matrix.qza"
     output:
         "artifacts/unweighted-unifrac-pcoa-matrix.qza"
     shell:
-        "scripts/unweighted_unifrac.py"
+        "qiime diversity beta-group-significance "
+        "--i-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza "
+        "--m-metadata-file data/paired_end_metadata.tsv "
+        "--m-metadata-column Groups " #modularize
+        "--o-visualization core-metrics-results/unweighted-unifrac-Group-significance.qzv "
+        "--p-pairwise"
 
-rule weighted_unifrac:
+rule evenness_alpha:
     input:
-        "core-metrics-results/weighted_unifrac_distance_matrix.qza"
+        "core-metrics-results/evenness_vector.qza"
     output:
-        "artifacts/weighted-unifrac-pcoa-matrix.qza"
+        "acore-metrics-results/evenness-group-significance.qzv"
     shell:
-        "scripts/weighted_unifrac.py"
+        "qiime diversity alpha-group-significance "
+        "--i-alpha-diversity core-metrics-results/evenness_vector.qza "
+        "--m-metadata-file data/paired_end_metadata.tsv "
+        "--o-visualization core-metrics-results/evenness-group-significance.qzv"
 
-rule jaccard:
+rule faith_alpha:
     input:
-        "core-metrics-results/jaccard_distance_matrix.qza"
+        "core-metrics-results/faith_pd_vector.qza"
     output:
-        "artifacts/jaccard-pcoa-matrix.qza"
+        "core-metrics-results/faith_pd.qzv"
     shell:
-        "scripts/jaccard.py"
+        "qiime diversity alpha-group-significance "
+        "--i-alpha-diversity core-metrics-results/faith_pd_vector.qza "
+        "--m-metadata-file data/paired_end_metadata.tsv "
+        "--o-visualization core-metrics-results/faith_pd.qzv"
+
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END OF QIIME2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 

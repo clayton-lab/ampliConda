@@ -24,3 +24,6 @@ trim-left-f:
   "10"
 trim-left-r:
   "10"
+
+sampling_depth:
+  1103
