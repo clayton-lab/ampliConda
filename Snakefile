@@ -63,7 +63,7 @@ rule qiime2_denoise_paired:
         "envs/qiime2.yml"
     shell:
         "qiime dada2 denoise-paired "
-        "--i-demultiplexed-seqs {input}"
+        "--i-demultiplexed-seqs {input} "
         "--p-trunc-len-f 260 "
         "--p-trunc-len-r 230 " #modularization
         "--p-trim-left-f 112 "
@@ -127,7 +127,7 @@ rule mafft_fasttree:
     input:
         "artifacts/paired-end-demux-trimmed.qza"
     output:
-        "aligned-rep-seqs.qza",
+        "artifacts/aligned-rep-seqs.qza",
         "artifacts/masked-aligned-rep-seqs.qza",
         "artifacts/unrooted-tree.qza",
         "artifacts/rooted-tree.qza"
@@ -143,7 +143,7 @@ rule mafft_fasttree:
 
 rule classify_sklearn:
     input:
-        classifier = "classifier/silva-138-99-nb-classifier.qza",
+        classifier = config["classifier"],
         seq = "artifacts/rep-seqs.qza"
     output:
         "artifacts/taxonomy.qza"
@@ -174,14 +174,30 @@ rule core_metrics_phylogenetic:
         "core-metrics-results/evenness_vector.qza",
         "core-metrics-results/faith_pd_vector.qza"
     params:
-        config = 1103 #config["sampling_depth"],#download the table.qzv file to choose a proper sampling depth"
+        config = config["sampling_depth_phylogenetic"]#download the table.qzv file to choose a proper sampling depth"
     shell:
         "qiime diversity core-metrics-phylogenetic "
-        "--i-phylogeny rooted-tree.qza "
-        "--i-table table.qza "
+        "--i-phylogeny artifacts/rooted-tree.qza "
+        "--i-table artifacts/table.qza "
         "--p-sampling-depth {params.config} " #should be 1103
-        "--m-metadata-file sample-metadata.tsv "
-        "--output-dir core-metrics-results"
+        "--m-metadata-file data/paired_end_metadata.tsv "
+        "--o-bray-curtis-distance-matrix core-metrics-results/bray_curtis_distance_matrix.qza "
+        "--o-unweighted-unifrac-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza "
+        "--o-evenness-vector core-metrics-results/evenness_vector.qza "
+        "--o-faith-pd-vector core-metrics-results/faith_pd_vector.qza "
+        "--o-rarefied-table core-metrics-results/table.qza "
+        "--o-observed-features-vector core-metrics-results/observed-otus-vector.qza "
+        "--o-shannon-vector core-metrics-results/shannon-vector.qza "
+        "--o-jaccard-distance-matrix core-metrics-results/jaccard-distance-matrix.qza "
+        "--o-jaccard-pcoa-results core-metrics-results/jaccard-pcoa-results.qza "
+        "--o-bray-curtis-pcoa-results core-metrics-results/bray-curtis-pcoa-results.qza "
+        "--o-jaccard-emperor core-metrics-results/jaccard-emperor.qzv "
+        "--o-bray-curtis-emperor core-metrics-results/bray-curtis-emperor.qzv "
+        "--o-weighted-unifrac-distance-matrix core-metrics-results/weighted-unifrac-distace-matrix.qza "
+        "--o-unweighted-unifrac-pcoa-results core-metrics-results/unweighted-unifrac-pcoa-results.qza "
+        "--o-weighted-unifrac-pcoa-results core-metrics-results/weighted-unifrac-pcoa-results.qza "
+        "--o-unweighted-unifrac-emperor core-metrics-results/unweighted-unifrac-emperor.qzv "
+        "--o-weighted-unifrac-emperor core-metrics-results/weighted-unifrac-emperor.qzv"
 
 rule bray_curtis_beta:
     input:
@@ -213,7 +229,7 @@ rule evenness_alpha:
     input:
         "core-metrics-results/evenness_vector.qza"
     output:
-        "acore-metrics-results/evenness-group-significance.qzv"
+        "core-metrics-results/evenness-group-significance.qzv"
     shell:
         "qiime diversity alpha-group-significance "
         "--i-alpha-diversity core-metrics-results/evenness_vector.qza "
