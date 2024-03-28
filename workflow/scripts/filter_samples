@@ -1,4 +1,0 @@
-qiime feature-table filter-samples \
-    --i-table artifacts/table.qza \
-    --m-metadata-file dog_manifest.tsv \
-    --o-filtered-table artifacts/filtered-table.qza

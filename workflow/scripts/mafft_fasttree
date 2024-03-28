@@ -1,6 +1,0 @@
-qiime phylogeny align-to-tree-mafft-fasttree \
-        --i-sequences artifacts/paired-end-demux-trimmed.qza \
-        --o-alignment artifacts/aligned-rep-seqs.qza \
-        --o-masked-alignment artifacts/masked-aligned-rep-seqs.qza \
-        --o-tree artifacts/unrooted-tree.qza \
-        --o-rooted-tree artifacts/rooted-tree.qza

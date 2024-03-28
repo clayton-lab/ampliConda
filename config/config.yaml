@@ -1,5 +1,8 @@
+# QIIME2
 manifest: 
   "data/paired_end_manifest.tsv"
+metadata:
+  "data/paired_end_metadata.tsv"
 
 tools:
   #"DADA2"
@@ -11,21 +14,24 @@ tools:
   #Kraken:
 
 classifier:
-  "Greengenes": false
-  "Silva": true
-  "Kraken2": false
-  "RefSeq": false
+  classifier/silva-138-99-nb-classifier.qza
 
-trunc-len-f:
+table-filter:
+  "chloroplast,mitochondria,eukaryota,unassigned"
+
+beta-div-column:
+  "Groups"
+
+trunclenf:
   "270"
-trunc-len-r:
+trunclenr:
   "230"
-trim-left-f:
+trimleftf:
   "10"
-trim-left-r:
-  "10"
+trimleftr:
+  "15"
 
 sampling_depth:
-  1103
+  "1103"
 sampling_depth_phylogenetic:
-  146159
+  "146159"

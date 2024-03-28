@@ -1,4 +1,0 @@
-qiime feature-classifier classify-sklearn \
-        --i-classifier classifier/silva-138-99-nb-classifier.qza \
-        --i-reads artifacts/aligned-rep-seqs.qza \
-        --o-classification artifacts/taxonomy.qza

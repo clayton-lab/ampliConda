@@ -1,6 +1,0 @@
-qiime diversity core-metrics-phylogenetic \
-    --i-phylogeny artifacts/rooted-tree.qza \
-    --i-table artifacts/table.qza \
-    --p-sampling-depth 146159 \
-    --m-metadata-file data/paired_end_metadata.tsv \
-    --output-dir core-metrics-results
