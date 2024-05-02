@@ -1,0 +1,355 @@
+import pandas as pd
+
+configfile: "config/config.yaml"
+
+# still working on this rule
+#rule setup:
+#    shell:
+#        "module load qiime2/2022.2 "
+#        "module load snakemake/6.4 "
+#        "module load R/4.3"
+
+target = "artifacts/rep-seqs.qza"
+
+rule all:
+    input:
+        target
+
+include: "R.smk"
+include: "qiime2.smk"
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGINNING OF QIIME2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+rule qiime2_import: #CHECKED
+    input:
+        config["manifest"]
+    output:
+        "artifacts/demux-paired-end-pre-filtered.qza"
+    conda:
+        "envs/qiime2-2022.11-py38-linux-conda.yml"
+    shell:
+        "qiime tools import "
+        "--type 'SampleData[PairedEndSequencesWithQuality]' "
+        "--input-path {input} "
+        "--output-path {output} "
+        "--input-format PairedEndFastqManifestPhred33V2"
+
+rule qiime2_demux_summarize: # git push
+    input: 
+        "artifacts/demux-paired-end.qza"
+    output:
+        "artifacts/demux-paired-end.qzv"
+    conda:
+        "envs/qiime2-2022.11-py38-linux-conda.yml"
+    log:
+        ".snakemake/log/demux_summarize.log"
+    shell:
+        "qiime demux summarize "
+	    "--i-data {input} "
+	    "--o-visualization {output}"
+
+rule qiime2_denoise_paired: #return code -9 = needs more threads | 
+    input:
+        "artifacts/demux-paired-end-pre-filtered.qza"
+    params:
+        trunclenf = config["trunclenf"],
+        trunclenr = config["trunclenr"],
+        trimleftf = config["trimleftf"],
+        trimleftr = config["trimleftr"]
+    output:
+        "artifacts/demux-paired-end-pre-trim.qza",
+        "artifacts/table.qza",
+        "artifacts/denoising-stats.qza"
+    conda:
+        "envs/qiime2-2022.11-py38-linux-conda.yml"
+    shell:
+        "qiime dada2 denoise-paired "
+        "--i-demultiplexed-seqs {input} "
+        "--p-trunc-len-f {params.trunclenf} "
+        "--p-trunc-len-r {params.trunclenr} " #modularization
+        "--p-trim-left-f {params.trimleftf} "
+        "--p-trim-left-r {params.trimleftr} "
+        "--o-table artifacts/table.qza "
+        "--o-representative-sequences artifacts/demux-paired-end-pre-trim.qza "
+        "--o-denoising-stats artifacts/denoising-stats.qza "
+        "--p-n-threads 0"
+
+rule automated_trim: #CHECKED; need to make sure that all reads are trimmed to same length
+    input:
+        "artifacts/demux-paired-end-pre-trim.qza"
+    params:
+        lowQuality = config["min-quality"],
+        qualityWindow = config["quality-window"],
+        lengthFraction = config["min-length-fraction"],
+        ambiguous = config["max-ambiguous"]
+    output:
+        "artifacts/rep-seqs.qza"
+    conda:
+        "envs/qiime2-2022.11-py38-linux-conda.yml"
+    shell:
+        "qiime quality-filter q-score "
+        "--i-demux {input} "
+        "--p-min-quality {params.lowQuality} "
+        "--p-quality-window {params.qualityWindow} "
+        "--p-min-length-fraction {params.lengthFraction} "
+        "--p-max-ambiguous {params.ambiguous} "
+        "--o-filtered-sequences artifacts/rep-seqs.qza "
+        "--o-filter-stats trim_stats.qza"
+
+rule qiime2_trimmed_summarize:
+    input:
+        "artifacts/rep-seqs.qza"
+    output:
+        "artifacts/paired-end-demux-trimmed.qzv"
+    conda:
+        "envs/qiime2-2022.11-py38-linux-conda.yml"
+    shell:
+        "qiime demux summarize " 
+        "--i-data {input} "
+	    "--o-visualization {output}"
+
+# (DADA2 return code -9) is a memory issue; run with more cores
+
+rule qiime2_metadata_tabulate:
+    input:
+        config["metadata"] # must be a .tsv NOT a .csv
+    output:
+        "artifacts/metadata_tabulated.qzv"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell:
+        "qiime metadata tabulate "
+        "--m-input-file {input} "
+        "--o-visualization {output}"
+
+rule classify_sklearn:
+    input:
+        "artifacts/rep-seqs.qza",
+        classifier = config["classifier"] #keyword arguments MUST be after positional arguments
+    output:
+        "artifacts/taxonomy.qza"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell:
+        "qiime feature-classifier classify-sklearn "
+        "--i-classifier {input.classifier} "
+        "--i-reads artifacts/rep-seqs.qza "
+        "--o-classification artifacts/taxonomy.qza"
+
+rule filter_table:
+    input: 
+        "artifacts/table.qza",
+        "artifacts/taxonomy.qza"
+    params:
+        config["table-filter"]
+    output: 
+        "artifacts/table-filtered.qza"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell: 
+        "qiime taxa filter-table "
+        "--i-table artifacts/table.qza " 
+        "--i-taxonomy artifacts/taxonomy.qza "
+        "--p-exclude {params} "
+        "--o-filtered-table artifacts/table-filtered.qza"
+
+rule feature_table_summarize:
+    input:
+        "artifacts/table-filtered.qza",
+        "data/paired_end_metadata.tsv"
+    output:
+        "artifacts/table-viz.qzv"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell:
+        "qiime feature-table summarize "
+        "--i-table artifacts/table-filtered.qza "
+        "--o-visualization artifacts/table-viz.qzv "
+        "--m-sample-metadata-file data/paired_end_metadata.tsv"
+
+rule tabulate_seqs:
+    input:
+        "artifacts/demux-paired-end.qza"
+    output:
+        "artifacts/demux-paired-end.qzv"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell:
+        "qiime feature-table tabulate-seqs "
+        "--i-data {input} "
+        "--o-visualization {output}"
+
+rule mafft_fasttree:
+    input:
+        "artifacts/rep-seqs.qza"
+    output:
+        "artifacts/aligned-rep-seqs.qza",
+        "artifacts/masked-aligned-rep-seqs.qza",
+        "artifacts/unrooted-tree.qza",
+        "artifacts/rooted-tree.qza"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell:
+        "qiime phylogeny align-to-tree-mafft-fasttree "
+        "--i-sequences {input} "
+        "--o-alignment artifacts/aligned-rep-seqs.qza "
+        "--o-masked-alignment artifacts/masked-aligned-rep-seqs.qza "
+        "--o-tree artifacts/unrooted-tree.qza "
+        "--o-rooted-tree artifacts/rooted-tree.qza"
+
+rule phylogeny_tabulate:
+    input:
+        "artifacts/taxonomy.qza"
+    output:
+        "artifacts/taxonomy.qzv"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell:
+        "qiime metadata tabulate "
+        "--m-input-file artifacts/taxonomy.qza "
+        "--o-visualization artifacts/taxonomy.qzv"
+
+rule core_metrics_phylogenetic:
+    input:
+        "artifacts/rooted-tree.qza",
+        "data/paired_end_metadata.tsv"
+    output:
+        "core-metrics-results/bray_curtis_distance_matrix.qza",
+        "core-metrics-results/unweighted_unifrac_distance_matrix.qza",
+        "core-metrics-results/evenness_vector.qza",
+        "core-metrics-results/faith_pd_vector.qza",
+        temp("core-metrics-results/table-filtered.qza"),
+        temp("core-metrics-results/observed-otus-vector.qza"),
+        temp("core-metrics-results/shannon-vector.qza"),
+        temp("core-metrics-results/jaccard-distance-matrix.qza"),
+        temp("core-metrics-results/jaccard-pcoa-results.qza"),
+        temp("core-metrics-results/bray-curtis-pcoa-results.qza"),
+        temp("core-metrics-results/jaccard-emperor.qzv"),
+        temp("core-metrics-results/bray-curtis-emperor.qzv"),
+        temp("core-metrics-results/weighted-unifrac-distace-matrix.qza"),
+        temp("core-metrics-results/unweighted-unifrac-pcoa-results.qza"),
+        temp("core-metrics-results/weighted-unifrac-pcoa-results.qza"),
+        temp("core-metrics-results/unweighted-unifrac-emperor.qzv"),
+        temp("core-metrics-results/weighted-unifrac-emperor.qzv")
+    params:
+        config = config["sampling_depth_phylogenetic"]
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell:
+        "qiime diversity core-metrics-phylogenetic "
+        "--i-phylogeny artifacts/rooted-tree.qza "
+        "--i-table artifacts/table-filtered.qza "
+        "--p-sampling-depth {params.config} " #should be 1103
+        "--m-metadata-file data/paired_end_metadata.tsv "
+        "--o-bray-curtis-distance-matrix core-metrics-results/bray_curtis_distance_matrix.qza "
+        "--o-unweighted-unifrac-distance-matrix core-metrics-results/unweighted_unifrac_distance_matrix.qza "
+        "--o-evenness-vector core-metrics-results/evenness_vector.qza "
+        "--o-faith-pd-vector core-metrics-results/faith_pd_vector.qza "
+        "--o-rarefied-table core-metrics-results/tablefiltered.qza "
+        "--o-observed-features-vector core-metrics-results/observed-otus-vector.qza "
+        "--o-shannon-vector core-metrics-results/shannon-vector.qza "
+        "--o-jaccard-distance-matrix core-metrics-results/jaccard-distance-matrix.qza "
+        "--o-jaccard-pcoa-results core-metrics-results/jaccard-pcoa-results.qza "
+        "--o-bray-curtis-pcoa-results core-metrics-results/bray-curtis-pcoa-results.qza "
+        "--o-jaccard-emperor core-metrics-results/jaccard-emperor.qzv "
+        "--o-bray-curtis-emperor core-metrics-results/bray-curtis-emperor.qzv "
+        "--o-weighted-unifrac-distance-matrix core-metrics-results/weighted-unifrac-distace-matrix.qza "
+        "--o-unweighted-unifrac-pcoa-results core-metrics-results/unweighted-unifrac-pcoa-results.qza "
+        "--o-weighted-unifrac-pcoa-results core-metrics-results/weighted-unifrac-pcoa-results.qza "
+        "--o-unweighted-unifrac-emperor core-metrics-results/unweighted-unifrac-emperor.qzv "
+        "--o-weighted-unifrac-emperor core-metrics-results/weighted-unifrac-emperor.qzv"
+
+rule bray_curtis_beta:
+    input:
+        "core-metrics-results/bray_curtis_distance_matrix.qza"
+    params:
+        column = config["beta-div-column"]
+    output:
+        "artifacts/bray-curtis-pcoa-matrix.qza"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell:
+        "qiime diversity beta-group-significance "
+        "--i-distance-matrix core-metrics-results/bray_curtis_distance_matrix.qza "
+        "--m-metadata-file data/paired_end_metadata.tsv "
+        "--m-metadata-column {params.column} "
+        "--o-visualization core-metrics-results/bray-curtis-Group-significance.qzv "
+        "--p-pairwise"
+
+rule evenness_alpha:
+    input:
+        "core-metrics-results/evenness_vector.qza"
+    output:
+        "core-metrics-results/evenness-group-significance.qzv"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell:
+        "qiime diversity alpha-group-significance "
+        "--i-alpha-diversity core-metrics-results/evenness_vector.qza "
+        "--m-metadata-file data/paired_end_metadata.tsv "
+        "--o-visualization core-metrics-results/evenness-group-significance.qzv"
+
+rule faith_alpha:
+    input:
+        "core-metrics-results/faith_pd_vector.qza"
+    output:
+        "core-metrics-results/faith_pd.qzv"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell:
+        "qiime diversity alpha-group-significance "
+        "--i-alpha-diversity core-metrics-results/faith_pd_vector.qza "
+        "--m-metadata-file data/paired_end_metadata.tsv "
+        "--o-visualization core-metrics-results/faith_pd.qzv"
+
+rule taxa_barplot:
+    input: 
+        "artifacts/table-filtered.qza",
+        "artifacts/taxonomy.qza",
+        config["metadata"]
+    output: 
+        "artifacts/taxa-barplot.qzv"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell: 
+        "qiime taxa barplot "
+        "--i-table artifacts/table-filtered.qza "
+        "--i-taxonomy artifacts/taxonomy.qza "
+        "--m-metadata-file data/metadata.tsv " # modularize
+        "--o-visualization artifacts/taxa-barplot.qzv"
+
+rule export_bray_curtis:
+    input: 
+        "core-metrics-results/bray_curtis_distance_matrix.qza"
+    output: 
+        "bray-distance-matrix/distance_matrix.tsv"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell: 
+        "qiime tools export "
+        "--input-path core-metrics-results/bray_curtis_distance_matrix.qza "
+        "-output-path bray-distance-matrix"
+
+rule export_table:
+    input: 
+        "artifacts/table.qza" # this should be table-filtered.qza
+    output: 
+        "OTU-table/feature-table.biom"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell: 
+        "qiime tools export "
+        "--input-path artifacts/table-filtered.qza "
+        "--output-path OTU-table"
+rule biom_to_tsv:
+    input: 
+        "OTU-table/feature-table.biom"
+    output: 
+        "artifacts/feature-table.tsv"
+    conda:
+        "envs/qiime2-2022.2.yml"
+    shell:
+        "biom convert "
+        "-i OTU-table/feature-table.biom "
+        "-o artifacts/feature-table.tsv "
+        "--to-tsv"
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ END OF QIIME2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
