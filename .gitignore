@@ -7,7 +7,6 @@ artifacts/**
 *.fastq.gz
 classifier/**
 core-metrics-results/**
-workflow/scripts/**
 mothur_materials/**
 
 # Backup files created by vim
