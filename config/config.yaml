@@ -1,4 +1,7 @@
 # QIIME2
+target-files: # still in progress
+  '"artifacts/feature-table.tsv", "bray-distance-matrix/distance_matrix.tsv", "artifacts/taxa-barplot.qzv"'
+
 manifest: 
   "data/paired_end_manifest.tsv"
 metadata:
@@ -22,15 +25,26 @@ table-filter:
 beta-div-column:
   "Groups"
 
+# automation algorithm in the future for this
 trunclenf:
-  "270"
+  "290"
 trunclenr:
-  "230"
+  "280"
 trimleftf:
   "10"
 trimleftr:
   "15"
+# automated trimming parameters
+min-quality:
+  "20"
+quality-window:
+  "10"
+min-length-fraction:
+  "0.75"
+max-ambiguous:
+  "0"
 
+# automation in progress
 sampling_depth:
   "1103"
 sampling_depth_phylogenetic:
