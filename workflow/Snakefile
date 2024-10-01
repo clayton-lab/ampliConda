@@ -9,7 +9,7 @@ configfile: "config/config.yaml"
 #        "module load snakemake/6.4 "
 #        "module load R/4.3"
 
-target = "artifacts/rep-seqs.qza"
+target = 'R_objects/metadata.RDS'
 
 rule all:
     input:
@@ -44,8 +44,8 @@ rule qiime2_demux_summarize: # git push
         ".snakemake/log/demux_summarize.log"
     shell:
         "qiime demux summarize "
-	    "--i-data {input} "
-	    "--o-visualization {output}"
+        "--i-data {input} "
+        "--o-visualization {output}"
 
 rule qiime2_denoise_paired: #return code -9 = needs more threads | 
     input:
@@ -105,7 +105,7 @@ rule qiime2_trimmed_summarize:
     shell:
         "qiime demux summarize " 
         "--i-data {input} "
-	    "--o-visualization {output}"
+        "--o-visualization {output}"
 
 # (DADA2 return code -9) is a memory issue; run with more cores
 

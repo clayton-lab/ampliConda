@@ -8,6 +8,11 @@ artifacts/**
 classifier/**
 core-metrics-results/**
 mothur_materials/**
+filtered/
+data/
+
+ampliConda_R_2_packages/**
+dada2_materials/**
 
 # Backup files created by vim
 *.un

@@ -12,12 +12,9 @@ tools:
   Qiime2:
     #- "artifacts/taxonomy.qza"
     - "artifacts/unweighted-unifrac-pcoa-matrix.qza"
-  #Mothur:
-  #Pathoscope2:
-  #Kraken:
 
 classifier:
-  classifier/silva-138-99-nb-classifier.qza
+  "classifier/silva-138-99-nb-classifier.qza"
 
 table-filter:
   "chloroplast,mitochondria,eukaryota,unassigned"
@@ -49,3 +46,9 @@ sampling_depth:
   "1103"
 sampling_depth_phylogenetic:
   "146159"
+
+#DADA2 in R
+R_metadata:
+  "data/paired_end_metadata.csv"
+
+R_automate:
