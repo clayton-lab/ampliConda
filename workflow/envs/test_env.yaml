@@ -1,7 +1,0 @@
-channels:
-  - defaults
-  - bioconda
-  - conda-forge
-  - r
-dependencies:
-  - pandas

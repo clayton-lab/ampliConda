@@ -1,0 +1,11 @@
+name: r-qiime2r-env
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - r-base=4.3.1
+  - r-qiime2r
+  - r-ggplot2
+  - bioconductor-phyloseq
+  - r-tidyverse

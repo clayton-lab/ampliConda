@@ -4,7 +4,7 @@ channels:
   - conda-forge
   - bioconda
   - defaults
-dependencies: #bioconductor-genomeinfodbdata=1.2.7 may give issues, keep an eye out
+dependencies:
   - _libgcc_mutex=0.1
   - _openmp_mutex=4.5
   - _r-mutex=1.0.1

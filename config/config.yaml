@@ -1,54 +1,113 @@
 # QIIME2
-target-files: # still in progress
-  '"artifacts/feature-table.tsv", "bray-distance-matrix/distance_matrix.tsv", "artifacts/taxa-barplot.qzv"'
-
 manifest: 
-  "data/paired_end_manifest.tsv"
+  "data/metadata_antibiotic.tsv"
 metadata:
-  "data/paired_end_metadata.tsv"
+  "data/16S/metadata/qiime2_formatted_nih_aim1_16s_metadata.tsv"
 
-tools:
-  #"DADA2"
-  Qiime2:
-    #- "artifacts/taxonomy.qza"
-    - "artifacts/unweighted-unifrac-pcoa-matrix.qza"
+data_format: # format of reads to be imported; note the double quotations for string form
+  #"'CasavaOneEightSingleLanePerSampleDirFmt'"
+  "'PairedEndFastqManifestPhred33V2'"
+  #"'PairedEndFastqManifestPhred64V2'"
 
 classifier:
-  "classifier/silva-138-99-nb-classifier.qza"
+  #"classifier/silva-138-99-nb-classifier.qza"
+  "classifier/gg-13-8-99-nb-classifier.qza"
 
-table-filter:
-  "chloroplast,mitochondria,eukaryota,unassigned"
+table-frequency: #minimum frequency a feature must show or it will be filtered out
+  "10"
 
-beta-div-column:
+table-include: #only include features classified down to the selected taxonomic level
+  "p__"
+  #"c__"
+  #"k__"
+
+table-filter: #determines which features will be removed from table due to host genome, etc.
+  "chloroplast,mitochondria,eukaryota" #must be comma separated with no spaces for each group you'd like to filter
+
+beta-div-column: #which variable from metadata file is being measured
   "Groups"
 
-# automation algorithm in the future for this
+# manual trimming; note that the parameters are string form
 trunclenf:
-  "290"
+  "240"
 trunclenr:
-  "280"
+  "220"
 trimleftf:
-  "10"
+  "60"
 trimleftr:
-  "15"
-# automated trimming parameters
-min-quality:
-  "20"
-quality-window:
-  "10"
-min-length-fraction:
-  "0.75"
-max-ambiguous:
-  "0"
+  "30"
 
-# automation in progress
 sampling_depth:
-  "1103"
+  "675"
 sampling_depth_phylogenetic:
-  "146159"
+  "4000"
+
+threads:
+  denoising: 16
+  qza_to_phyloseq: 8
+
+alpha_comparison_category:
+  "Description"
+
+beta_comparison_category:
+  "Description"
+
+taxa_level_barplot:
+  "Phylum"
+
+taxa_comparison_category:
+  "Description"
+
+heatmap_level:
+  "Phylum"
+
+heatmap_comparison_category:
+  "Description"
+
+
+# QIIME2 pipeline outputs
+
+#STEP 1 this is for choosing filter parameters
+#"artifacts/demux-paired-end.qzv"
+
+#STEP 2 this is for choosing sampling depth
+#"artifacts/table-viz.qzv"
+#"artifacts/rooted-tree.qza"
+
+#STEP 3 these two objects can be turned into a physloseq object for analysis in R
+#"artifacts/taxonomy.qzv"
+# "qiime_output/feature-table.tsv"
+
+#STEP 4 use these to finish the QIIME workflow
+#"bray-distance-matrix/nmds-bray.txt" # distance matrix
+#"artifacts/feature-table.tsv"
+#"artifacts/taxa-barplot.qzv"
+#"core-metrics-results/bray-curtis-emperor.qzv"
+#"core-metrics-results/shannon-vector.qzv"
+#"core-metrics-results/evenness-group-significance.qzv"
+#"artifacts/taxonomy.qzv"
+#"artifacts/table-filtered.qza"
+
+
 
 #DADA2 in R
 R_metadata:
   "data/paired_end_metadata.csv"
 
-R_automate:
+filt_path:
+  "filtered"
+
+trimming_setting:
+  "manual"
+  #"automatic"
+
+# note these trimming parameters need to be number form
+forward_trunc_R:
+  280
+reverse_trunc_R:
+  250
+minimum_sequence_quality:
+  20
+
+max_sequences_processed: #keep in scientific notation for ease of use
+  1e+06
