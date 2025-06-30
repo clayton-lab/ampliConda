@@ -1,4 +1,4 @@
 There are many different classifiers that can be used with this workflow. 
 For reproducibility purposes, I recommend downloading a classifier from the QIIME2 data resources website:
 https://library.qiime2.org/data-resources
-From there, move the classifier file to this folder and plug in its respective path in the config file.
+From there, move the classifier file into this folder and plug in its respective path into the config file.
