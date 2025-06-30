@@ -14,6 +14,14 @@ If you use this workflow in a paper, don't forget to give credits to the authors
 
 "snakemake --dag | dot -Tsvg > dag.svg" this is the command for creating an svg of a dry run for your workflow
 
+## Loading Snakemake
+
+Snakemake can be loaded through conda (mamba in this case)
+```$ mamba env create -n ampliConda-snakemake -f env/snakemake.yaml```
+
+If on an HPC platform:
+```$ module load snakemake/6.4```
+
 # TODO
 
 * Replace `<owner>` and `<repo>` everywhere in the template (also under .github/workflows) with the correct `<repo>` name and owning user or organization.
