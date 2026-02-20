@@ -1,8 +1,8 @@
 # QIIME2
 manifest: 
-  "data/metadata_antibiotic.tsv"
+  "data/metadata/aim1_manifest.tsv"
 metadata:
-  "data/16S/metadata/qiime2_formatted_nih_aim1_16s_metadata.tsv"
+  "data/metadata/aim1_metadata.tsv"
 
 data_format: # format of reads to be imported; note the double quotations for string form
   #"'CasavaOneEightSingleLanePerSampleDirFmt'"
@@ -11,7 +11,7 @@ data_format: # format of reads to be imported; note the double quotations for st
 
 classifier:
   #"classifier/silva-138-99-nb-classifier.qza"
-  "classifier/gg-13-8-99-nb-classifier.qza"
+  "classifier/longitudinal_classifier.qza"
 
 table-frequency: #minimum frequency a feature must show or it will be filtered out
   "10"
@@ -22,47 +22,51 @@ table-include: #only include features classified down to the selected taxonomic 
   #"k__"
 
 table-filter: #determines which features will be removed from table due to host genome, etc.
-  "chloroplast,mitochondria,eukaryota" #must be comma separated with no spaces for each group you'd like to filter
+  "chloroplast,mitochondria,eukaryota" 
+#must be comma separated with no spaces for each group you'd like to filter
 
 beta-div-column: #which variable from metadata file is being measured
   "Groups"
 
 # manual trimming; note that the parameters are string form
 trunclenf:
-  "240"
+  "237"
 trunclenr:
-  "220"
+  "213"
 trimleftf:
-  "60"
+  "40"
 trimleftr:
-  "30"
+  "40"
 
 sampling_depth:
-  "675"
+  "5000"
 sampling_depth_phylogenetic:
-  "4000"
+  "5000"
 
 threads:
   denoising: 16
   qza_to_phyloseq: 8
 
-alpha_comparison_category:
-  "Description"
+alpha_color_category:
+  "Group"
+
+alpha_x_category:
+  "Chrono_TP"
 
 beta_comparison_category:
-  "Description"
+  "Group"
 
-taxa_level_barplot:
-  "Phylum"
+taxa_lower_level_barplot:
+  "Genus"
 
 taxa_comparison_category:
-  "Description"
+  "Group"
 
 heatmap_level:
-  "Phylum"
+  "Order"
 
 heatmap_comparison_category:
-  "Description"
+  "Group"
 
 
 # QIIME2 pipeline outputs

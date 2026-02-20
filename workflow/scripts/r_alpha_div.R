@@ -1,8 +1,26 @@
 phyloseq = readRDS(snakemake@input$phyloseq)
-category = snakemake@params$category
+color = snakemake@params$color
+xaxis = snakemake@params$xaxis
 
 library(phyloseq)
 library(ggplot2)
 
-alpha_div <- plot_richness(phyloseq, x=category, color=category, measures = c("Shannon")) + geom_point(size = 4) + theme_bw()
+full_shannon <- plot_richness(
+  phyloseq,
+  x = xaxis,
+  measures = "Shannon",
+  color = color
+)
+
+full_shannon$layers[[1]]$aes_params$alpha <- 0.3
+
+alpha_div <- full_shannon +
+  stat_smooth(
+    method = "gam",
+    se = TRUE,
+    level = 0.95,
+    linewidth = 1.2
+  ) +
+  theme_grey()
+  
 ggsave(filename = snakemake@output[[1]], plot = alpha_div, device = "pdf")

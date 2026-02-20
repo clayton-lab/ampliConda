@@ -2,7 +2,7 @@ import pandas as pd
 
 configfile: "config/config.yaml"
 
-target =  "artifacts/table-viz.qzv"
+target =  "artifacts/physeq.RDS", "visual_outputs/alpha_div.pdf", "visual_outputs/beta_div.pdf", "visual_outputs/relative_barplot.pdf"
 rule all:
     input:
         target
@@ -548,7 +548,8 @@ rule r_alpha_div:
     output:
         "visual_outputs/alpha_div.pdf"
     params:
-        category = config["alpha_comparison_category"]
+        color = config["alpha_color_category"],
+        xaxis = config["alpha_x_category"]
     conda:
         "envs/qiime2r.yaml"
     script:
@@ -572,10 +573,10 @@ rule r_relative_barplot:
     output:
         "visual_outputs/relative_barplot.pdf"
     params:
-        taxalevel = config["taxa_level_barplot"],
+        taxalevel = config["taxa_lower_level_barplot"],
         taxacomparison = config["taxa_comparison_category"]
     conda:
-        "envs/qiime2r.yaml"
+        "envs/r-metagenome-env.yaml"
     script:
         "scripts/r_relative_barplot.R"
 
@@ -585,7 +586,7 @@ rule r_absolute_barplot:
     output:
         "visual_outputs/absolute_barplot.pdf"
     params:
-        taxalevel = config["taxa_level_barplot"],
+        taxalevel = config["taxa_lower_level_barplot"],
         taxacomparison = config["taxa_comparison_category"]
     conda:
         "envs/qiime2r.yaml"
