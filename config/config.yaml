@@ -38,8 +38,6 @@ trimleftf:
 trimleftr:
   "40"
 
-sampling_depth:
-  "5000"
 sampling_depth_phylogenetic:
   "5000"
 
@@ -70,6 +68,7 @@ heatmap_comparison_category:
 
 
 # QIIME2 pipeline outputs
+# set these files as your targets at the top of your Snakefile
 
 #STEP 1 this is for choosing filter parameters
 #"artifacts/demux-paired-end.qzv"
@@ -82,36 +81,8 @@ heatmap_comparison_category:
 #"artifacts/taxonomy.qzv"
 # "qiime_output/feature-table.tsv"
 
-#STEP 4 use these to finish the QIIME workflow
-#"bray-distance-matrix/nmds-bray.txt" # distance matrix
-#"artifacts/feature-table.tsv"
-#"artifacts/taxa-barplot.qzv"
-#"core-metrics-results/bray-curtis-emperor.qzv"
-#"core-metrics-results/shannon-vector.qzv"
-#"core-metrics-results/evenness-group-significance.qzv"
-#"artifacts/taxonomy.qzv"
-#"artifacts/table-filtered.qza"
-
-
-
-#DADA2 in R
-R_metadata:
-  "data/paired_end_metadata.csv"
-
-filt_path:
-  "filtered"
-
-trimming_setting:
-  "manual"
-  #"automatic"
-
-# note these trimming parameters need to be number form
-forward_trunc_R:
-  280
-reverse_trunc_R:
-  250
-minimum_sequence_quality:
-  20
-
-max_sequences_processed: #keep in scientific notation for ease of use
-  1e+06
+#STEP 4 choose a visual output (also creates a phyloseq object of your work)
+# "visual_outputs/alpha_div.pdf"
+# "visual_outputs/beta_div.pdf"
+# "visual_outputs/absolute_barplot.pdf"
+# "visual_outputs/absolute_barplot.pdf"
