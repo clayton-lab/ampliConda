@@ -11,7 +11,7 @@ The following pipeline uses Snakemake to focus on streamlining current processin
 
 ```
 $ git clone git@github.com:clayton-lab/ampliConda.git --branch master
-cd ampliConda
+$ cd ampliConda
 ```
 
 **The workflow has compatibility with conda, so installation of mamba is recommended.**
@@ -50,11 +50,11 @@ The pipeline can be run completely independently for a "bird's eye view" of the 
 **Once the files have been properly prepared, you are ready to run the pipeline as follows:**
 
 ```
-conda install -n base -c conda-forge mamba
+$ conda install -n base -c conda-forge mamba
 ```
 
 **Then begin the run using:**
 ```
-snakemake --cores 8 --use-conda
+$ snakemake --cores 8 --use-conda
 #note that the number of cores may be subject to change based on the demands of your data.
 ```
