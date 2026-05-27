@@ -55,5 +55,6 @@ conda install -n base -c conda-forge mamba
 
 **Then begin the run using:**
 ```
-snakemake --cores 8 --use-conda #note that the number of cores may be subject to change based on the demands of your data.
+snakemake --cores 8 --use-conda
+#note that the number of cores may be subject to change based on the demands of your data.
 ```
