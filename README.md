@@ -29,7 +29,7 @@ $ module load mamba/x.x      # The x.x suffix denotes specific versions
 
 ```
 $ mamba env create -n snakemake-env -f workflow/envs/snakemake.yaml
-$ conda activate snakemake
+$ conda activate snakemake-env
 ```
 
 ### File Preparation
