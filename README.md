@@ -31,7 +31,12 @@ $ module load mamba/x.x      # The x.x suffix denotes specific versions
 $ mamba env create -n snakemake-env -f workflow/envs/snakemake.yaml
 $ conda activate snakemake-env
 ```
-**Ensure that you are running a conda version >=24.7.1 within this environment! Update conda if necessary, then proceed**
+**Ensure that you are running a conda version >=24.7.1 within this environment! Update conda if necessary, then proceed using:**
+
+```
+$ conda update -n base conda
+$ conda --version
+```
 
 ### File Preparation
 
