@@ -1,7 +1,7 @@
 # ampliConda: Clayton Lab Workflow for 16S Processing and Analysis
 
 ## Overview
-The following pipeline uses Snakemake to focus on streamlining current processing methods for 16S rRNA analysis. The pipeline is based upon the generalized methods employed by the QIIME2 platform with additional packages that allow for visual output to exists outside of the QIIME2 system. From a series of fastq files and some user-provided parameters, ampliConda will generated basic visual graphs as well as providing a phyloseq object upon which the user can continue to do more advanced analysis using whichever R packages they'd like.
+The following pipeline uses Snakemake to focus on streamlining current processing methods for 16S rRNA analysis. The pipeline is based upon the generalized methods employed by the QIIME2 platform with additional packages that allow for visual output to exist outside of the QIIME2 system. From a series of fastq files and some user-provided parameters, ampliConda will generated basic visual graphs as well as providing a phyloseq object upon which the user can continue to do more advanced analysis using whichever R packages they'd like.
 
 ## Quick Start Guide
 
