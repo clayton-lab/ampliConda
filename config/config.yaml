@@ -74,15 +74,7 @@ heatmap_comparison_category:
 #"artifacts/demux-paired-end.qzv"
 
 #STEP 2 this is for choosing sampling depth
-#"artifacts/table-viz.qzv"
-#"artifacts/rooted-tree.qza"
+#"artifacts/table-viz.qzv", "artifacts/rooted-tree.qza"
 
-#STEP 3 these two objects can be turned into a physloseq object for analysis in R
-#"artifacts/taxonomy.qzv"
-# "qiime_output/feature-table.tsv"
-
-#STEP 4 choose a visual output (also creates a phyloseq object of your work)
-# "visual_outputs/alpha_div.pdf"
-# "visual_outputs/beta_div.pdf"
-# "visual_outputs/absolute_barplot.pdf"
-# "visual_outputs/absolute_barplot.pdf"
+#STEP 3 choose a visual output (also creates a phyloseq object of your work)
+# "visual_outputs/alpha_div.pdf", "visual_outputs/beta_div.pdf", "visual_outputs/absolute_barplot.pdf", "visual_outputs/absolute_barplot.pdf"
