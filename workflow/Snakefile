@@ -6,10 +6,6 @@ target =  "artifacts/physeq.RDS", "visual_outputs/alpha_div.pdf", "visual_output
 rule all:
     input:
         target
-
-include: "R.smk"
-include: "functional_analysis.smk"
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGINNING OF QIIME2 ANALYSIS SECTION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rule qiime2_import: 
     input:
