@@ -76,7 +76,7 @@ heatmap_comparison_category:
 #  "artifacts/table-viz.qzv", "artifacts/rooted-tree.qza"
 
 #  STEP 3 choose a prebuilt visual output
-#  "visual_outputs/alpha_div.pdf", "visual_outputs/beta_div.pdf", "visual_outputs/absolute_barplot.pdf", "visual_outputs/absolute_barplot.pdf"
+#  "visual_outputs/alpha_div.pdf", "visual_outputs/beta_div.pdf", "visual_outputs/absolute_barplot.pdf", "visual_outputs/heatmap.pdf"
 
 #  NOTE- if you wish to skip the prebuilt visual options and instead jump right into custom output, set this as your target for STEP 3 of the pipeline:
 #   "artifacts/physeq.RDS"
