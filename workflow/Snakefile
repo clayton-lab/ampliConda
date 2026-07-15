@@ -62,7 +62,8 @@ rule qiime2_denoise_paired: #return code -9 = needs more threads
         "--p-trim-left-r {params.trimleftr} "
         "--o-table artifacts/table.qza "
         "--o-representative-sequences artifacts/demux-paired-end-pre-trim.qza "
-        "--o-denoising-stats artifacts/denoising-stats.qza"
+        "--o-denoising-stats artifacts/denoising-stats.qza "
+        "--o-base-transition-stats artifacts/base-transition-stats.qza"
 
 """
 rule automated_trim: #CHECKED; need to make sure that all reads are trimmed to same length
@@ -572,7 +573,7 @@ rule r_relative_barplot:
         taxalevel = config["taxa_lower_level_barplot"],
         taxacomparison = config["taxa_comparison_category"]
     conda:
-        "envs/r-metagenome-env.yaml"
+        "envs/qiime2r.yaml"
     script:
         "scripts/r_relative_barplot.R"
 
