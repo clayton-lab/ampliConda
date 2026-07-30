@@ -10,8 +10,8 @@ data_format: # format of reads to be imported; note the double quotations for st
   #"'PairedEndFastqManifestPhred64V2'"
 
 classifier:
-  #"classifier/silva-138-99-nb-classifier.qza"
-  "classifier/longitudinal_classifier.qza"
+  "classifier/silva-138-99-nb-classifier.qza"
+  #"classifier/longitudinal_classifier.qza"
 
 table-frequency: #minimum frequency a feature must show or it will be filtered out
   "10"
@@ -43,6 +43,7 @@ sampling_depth_phylogenetic:
 
 threads:
   denoising: 16
+  classify_sklearn: 16
   qza_to_phyloseq: 8
 
 alpha_color_category:

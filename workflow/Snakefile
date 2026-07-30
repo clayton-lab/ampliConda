@@ -60,6 +60,7 @@ rule qiime2_denoise_paired: #return code -9 = needs more threads
         "--p-trunc-len-r {params.trunclenr} "
         "--p-trim-left-f {params.trimleftf} "
         "--p-trim-left-r {params.trimleftr} "
+        "--p-n_threads {threads} "
         "--o-table artifacts/table.qza "
         "--o-representative-sequences artifacts/demux-paired-end-pre-trim.qza "
         "--o-denoising-stats artifacts/denoising-stats.qza "
@@ -141,10 +142,13 @@ rule classify_sklearn:
         "artifacts/taxonomy.qza"
     conda:
         "envs/qiime2.yml"
+threads:
+        config['threads']['classify_sklearn']
     shell:
         "qiime feature-classifier classify-sklearn "
         "--i-classifier {input.classifier} "
         "--i-reads artifacts/demux-paired-end-pre-trim.qza "
+        "--p-n_jobs {threads} "
         "--o-classification artifacts/taxonomy.qza"
 
 #future automated sample filtering
