@@ -163,7 +163,8 @@ rule filter_table_frequency:
     input:
         "artifacts/table.qza"
     params:
-        frequency = config["table-frequency"]
+        table_frequency = config["table-frequency"]
+        sample_frequency = config["sample-frequency"]
     output:
         "artifacts/feature-frequency-filtered-table.qza"
     conda:
@@ -171,7 +172,8 @@ rule filter_table_frequency:
     shell:
         "qiime feature-table filter-features "
         "--i-table artifacts/table.qza "
-        "--p-min-frequency {params.frequency} "
+        "--p-min-frequency {params.table_frequency} "
+        "--p-min-samples {params.sample_frequency} "
         "--o-filtered-table artifacts/feature-frequency-filtered-table.qza"
 
 rule filter_table_feature:

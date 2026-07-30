@@ -16,6 +16,9 @@ classifier:
 table-frequency: #minimum frequency a feature must show or it will be filtered out
   "10"
 
+sample-frequency: # minimum number of samples a feature must appear in or it will be filtered out
+  "2"
+
 table-include: #only include features classified down to the selected taxonomic level
   "p__"
   #"c__"
