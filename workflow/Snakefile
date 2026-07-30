@@ -37,9 +37,32 @@ rule qiime2_demux_summarize:
         "--i-data {input} "
         "--o-visualization {output}"
 
+rule qiime2_trim_paired:
+    input:
+        demux_qza = "artifacts/demux-paired-end.qza",
+        demux_qzv = "artifacts/demux-paired-end.qzv"
+    params:
+        adapter_f = config["cutadapt"]["adapter_f"].split(','),
+        adapter_r = config["cutadapt"]["adapter_r"].split(','),
+        min_length = config["cutadapt"]["minimum_length"]
+    threads:
+        config['threads']['trimming']
+    output:
+        trim_qza = "artifacts/trimmed-seqs.qza",
+    conda:
+        "envs/qiime2.yml"
+    shell:
+        "qiime cutadapt trim-paired "
+        "--i-demultiplexed-sequences {input.demux_qza} "
+        "--p-adapter-f {params.adapter_f} "
+        "--p-adapter-r {params.adapter_r} "
+        "--p-minimum-length {params.min_length} "
+        "--p-cores {threads} "
+        "--o-trimmed-sequences {output.trim_qza} "
+
 rule qiime2_denoise_paired: #return code -9 = needs more threads
     input:
-        "artifacts/demux-paired-end.qza"
+        "artifacts/trimmed-seqs.qza"
     params:
         trunclenf = config["trunclenf"],
         trunclenr = config["trunclenr"],
@@ -48,9 +71,10 @@ rule qiime2_denoise_paired: #return code -9 = needs more threads
     threads:
         config['threads']['denoising']
     output:
-        "artifacts/demux-paired-end-pre-trim.qza",
-        "artifacts/table.qza",
-        "artifacts/denoising-stats.qza"
+        pre_trim = "artifacts/demux-paired-end-pre-trim.qza",
+        table = "artifacts/table.qza",
+        denoise_stats = "artifacts/denoising-stats.qza",
+        transition_stats = "artifacts/base-transition-stats.qza"
     conda:
         "envs/qiime2.yml"
     shell:
@@ -60,11 +84,11 @@ rule qiime2_denoise_paired: #return code -9 = needs more threads
         "--p-trunc-len-r {params.trunclenr} "
         "--p-trim-left-f {params.trimleftf} "
         "--p-trim-left-r {params.trimleftr} "
-        "--p-n_threads {threads} "
-        "--o-table artifacts/table.qza "
-        "--o-representative-sequences artifacts/demux-paired-end-pre-trim.qza "
-        "--o-denoising-stats artifacts/denoising-stats.qza "
-        "--o-base-transition-stats artifacts/base-transition-stats.qza"
+        "--p-n-threads {threads} "
+        "--o-table {output.table} "
+        "--o-representative-sequences {output.pre_trim} "
+        "--o-denoising-stats {output.denoise_stats} "
+        "--o-base-transition-stats {output.transition_stats}"
 
 """
 rule automated_trim: #CHECKED; need to make sure that all reads are trimmed to same length
@@ -92,7 +116,6 @@ rule automated_trim: #CHECKED; need to make sure that all reads are trimmed to s
 
 rule qiime2_trimmed_summarize:
     input:
-       # "artifacts/rep-seqs.qza"
         "artifacts/demux-paired-end-pre-trim.qza"
     output:
         "artifacts/demux-paired-end-pre-trim.qzv"
@@ -135,20 +158,19 @@ rule export_metadata:
 
 rule classify_sklearn:
     input:
-        #"artifacts/rep-seqs.qza",
         "artifacts/demux-paired-end-pre-trim.qza",
         classifier = config["classifier"] #keyword arguments MUST be after positional arguments
     output:
         "artifacts/taxonomy.qza"
     conda:
         "envs/qiime2.yml"
-threads:
+    threads:
         config['threads']['classify_sklearn']
     shell:
         "qiime feature-classifier classify-sklearn "
         "--i-classifier {input.classifier} "
         "--i-reads artifacts/demux-paired-end-pre-trim.qza "
-        "--p-n_jobs {threads} "
+        "--p-n-jobs {threads} "
         "--o-classification artifacts/taxonomy.qza"
 
 #future automated sample filtering
@@ -163,7 +185,7 @@ rule filter_table_frequency:
     input:
         "artifacts/table.qza"
     params:
-        table_frequency = config["table-frequency"]
+        table_frequency = config["table-frequency"],
         sample_frequency = config["sample-frequency"]
     output:
         "artifacts/feature-frequency-filtered-table.qza"

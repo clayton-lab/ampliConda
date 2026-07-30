@@ -31,6 +31,11 @@ table-filter: #determines which features will be removed from table due to host 
 beta-div-column: #which variable from metadata file is being measured
   "Groups"
 
+cutadapt:
+  adapter_f: "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA,CTGTCTCTTATACACATCT" # forward adapter sequence(s) to trim. Leave as "" to avoid trimming entirely
+  adapter_r: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT,CTGTCTCTTATACACATCT" # forward adapter sequence(s) to trim. Leave as "" to avoid trimming entirely
+  minimum_length: "20" # trimmed reads shorter than this will be removed
+
 # manual trimming; note that the parameters are string form
 trunclenf:
   "237"
@@ -45,6 +50,7 @@ sampling_depth_phylogenetic:
   "5000"
 
 threads:
+  trimming: 16
   denoising: 16
   classify_sklearn: 16
   qza_to_phyloseq: 8
