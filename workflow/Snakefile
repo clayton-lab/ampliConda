@@ -1,5 +1,7 @@
-import pandas as pd
+#TODO: Add qiime2 prefix to all qiime 2 rules, add proper {input} and {output} to each shell command, revise or
+# delete rules that aren't currently being used.
 
+import pandas as pd
 configfile: "config/config.yaml"
 target = "artifacts/taxa-barplot.qzv", "artifacts/physeq.RDS", "visual_outputs/alpha_div.pdf", "visual_outputs/beta_div.pdf", "visual_outputs/relative_barplot.pdf"
 rule all:
@@ -257,11 +259,14 @@ rule mafft_fasttree:
         "artifacts/masked-aligned-rep-seqs.qza",
         "artifacts/unrooted-tree.qza",
         "artifacts/rooted-tree.qza"
+    threads:
+        config['threads']['mafft_fasttree']
     conda:
         "envs/qiime2.yml"
     shell:
         "qiime phylogeny align-to-tree-mafft-fasttree "
         "--i-sequences {input} "
+        "--p-n-threads {threads} "
         "--o-alignment artifacts/aligned-rep-seqs.qza "
         "--o-masked-alignment artifacts/masked-aligned-rep-seqs.qza "
         "--o-tree artifacts/unrooted-tree.qza "
@@ -566,7 +571,7 @@ rule biom_to_tsv:
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ BEGINNING OF R ANALYSIS/VISUALIZATION ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 rule qza_to_phyloseq:
     input:
-        features = "artifacts/rarefied-table-filtered.qza",
+        features = "artifacts/table-filtered.qza",
         tree = "artifacts/rooted-tree.qza",
         taxonomy = "artifacts/taxonomy.qza",
         metadata = config["metadata"]

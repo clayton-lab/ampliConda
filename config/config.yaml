@@ -53,6 +53,7 @@ threads:
   trimming: 16
   denoising: 16
   classify_sklearn: 16
+  mafft_fasttree: 16
   qza_to_phyloseq: 8
 
 alpha_color_category:
