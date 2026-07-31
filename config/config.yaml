@@ -33,7 +33,7 @@ beta-div-column: #which variable from metadata file is being measured
 
 cutadapt:
   adapter_f: "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA,CTGTCTCTTATACACATCT" # forward adapter sequence(s) to trim. Leave as "" to avoid trimming entirely
-  adapter_r: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT,CTGTCTCTTATACACATCT" # forward adapter sequence(s) to trim. Leave as "" to avoid trimming entirely
+  adapter_r: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT,CTGTCTCTTATACACATCT" # reverse adapter sequence(s) to trim. Leave as "" to avoid trimming entirely
   minimum_length: "20" # trimmed reads shorter than this will be removed
 
 # manual trimming; note that the parameters are string form

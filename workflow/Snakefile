@@ -1,8 +1,7 @@
 import pandas as pd
 
 configfile: "config/config.yaml"
-
-target =  "artifacts/physeq.RDS", "visual_outputs/alpha_div.pdf", "visual_outputs/beta_div.pdf", "visual_outputs/relative_barplot.pdf"
+target = "artifacts/taxa-barplot.qzv", "artifacts/physeq.RDS", "visual_outputs/alpha_div.pdf", "visual_outputs/beta_div.pdf", "visual_outputs/relative_barplot.pdf"
 rule all:
     input:
         target
@@ -30,8 +29,6 @@ rule qiime2_demux_summarize:
         "artifacts/demux-paired-end.qzv"
     conda:
         "envs/qiime2.yml"
-    log:
-        ".snakemake/log/demux_summarize.log"
     shell:
         "qiime demux summarize "
         "--i-data {input} "
@@ -39,11 +36,10 @@ rule qiime2_demux_summarize:
 
 rule qiime2_trim_paired:
     input:
-        demux_qza = "artifacts/demux-paired-end.qza",
-        demux_qzv = "artifacts/demux-paired-end.qzv"
+        "artifacts/demux-paired-end.qza",
     params:
-        adapter_f = config["cutadapt"]["adapter_f"].split(','),
-        adapter_r = config["cutadapt"]["adapter_r"].split(','),
+        adapter_f = [f'--p-adapter-f {seq} ' for seq in config["cutadapt"]["adapter_f"].split(',') if seq],
+        adapter_r = [f'--p-adapter-r {seq} ' for seq in config["cutadapt"]["adapter_r"].split(',') if seq],
         min_length = config["cutadapt"]["minimum_length"]
     threads:
         config['threads']['trimming']
@@ -51,14 +47,17 @@ rule qiime2_trim_paired:
         trim_qza = "artifacts/trimmed-seqs.qza",
     conda:
         "envs/qiime2.yml"
+    log:
+        ".snakemake/log/trim_paired_summarize.log"
     shell:
         "qiime cutadapt trim-paired "
-        "--i-demultiplexed-sequences {input.demux_qza} "
-        "--p-adapter-f {params.adapter_f} "
-        "--p-adapter-r {params.adapter_r} "
+        "--i-demultiplexed-sequences {input} "
+        "{params.adapter_f}"
+        "{params.adapter_r}"
         "--p-minimum-length {params.min_length} "
         "--p-cores {threads} "
         "--o-trimmed-sequences {output.trim_qza} "
+        "--verbose 2> {log} 1>&2"
 
 rule qiime2_denoise_paired: #return code -9 = needs more threads
     input:
@@ -71,7 +70,7 @@ rule qiime2_denoise_paired: #return code -9 = needs more threads
     threads:
         config['threads']['denoising']
     output:
-        pre_trim = "artifacts/demux-paired-end-pre-trim.qza",
+        rep_seqs = "artifacts/demux-paired-end-rep-seqs.qza",
         table = "artifacts/table.qza",
         denoise_stats = "artifacts/denoising-stats.qza",
         transition_stats = "artifacts/base-transition-stats.qza"
@@ -86,14 +85,14 @@ rule qiime2_denoise_paired: #return code -9 = needs more threads
         "--p-trim-left-r {params.trimleftr} "
         "--p-n-threads {threads} "
         "--o-table {output.table} "
-        "--o-representative-sequences {output.pre_trim} "
+        "--o-representative-sequences {output.rep_seqs} "
         "--o-denoising-stats {output.denoise_stats} "
         "--o-base-transition-stats {output.transition_stats}"
 
 """
 rule automated_trim: #CHECKED; need to make sure that all reads are trimmed to same length
     input:
-        "artifacts/demux-paired-end-pre-trim.qza"
+        "artifacts/demux-paired-end-rep-seqs.qza"
     params:
         lowQuality = config["min-quality"],
         qualityWindow = config["quality-window"],
@@ -114,25 +113,12 @@ rule automated_trim: #CHECKED; need to make sure that all reads are trimmed to s
         "--o-filter-stats trim_stats.qza"
 """
 
-rule qiime2_trimmed_summarize:
-    input:
-        "artifacts/demux-paired-end-pre-trim.qza"
-    output:
-        "artifacts/demux-paired-end-pre-trim.qzv"
-    conda:
-        "envs/qiime2.yml"
-    shell:
-        "qiime demux summarize " 
-        "--i-data {input} "
-        "--o-visualization {output}"
-
 # (DADA2 return code -9) is a memory issue; run with more cores
-
 rule qiime2_metadata_tabulate:
     input:
-        sequences = "artifacts/demux-paired-end-pre-trim.qza",
+        sequences = "artifacts/demux-paired-end-rep-seqs.qza",
         taxonomy = "artifacts/taxonomy.qza",
-        table = "artifacts/rarefied-table-filtered.qza" # must be a .tsv NOT a .csv
+        table = "artifacts/table-filtered.qza" # must be a .tsv NOT a .csv
     output:
         "artifacts/metadata_tabulated.qzv"
     conda:
@@ -158,7 +144,7 @@ rule export_metadata:
 
 rule classify_sklearn:
     input:
-        "artifacts/demux-paired-end-pre-trim.qza",
+        "artifacts/demux-paired-end-rep-seqs.qza",
         classifier = config["classifier"] #keyword arguments MUST be after positional arguments
     output:
         "artifacts/taxonomy.qza"
@@ -169,7 +155,7 @@ rule classify_sklearn:
     shell:
         "qiime feature-classifier classify-sklearn "
         "--i-classifier {input.classifier} "
-        "--i-reads artifacts/demux-paired-end-pre-trim.qza "
+        "--i-reads artifacts/demux-paired-end-rep-seqs.qza "
         "--p-n-jobs {threads} "
         "--o-classification artifacts/taxonomy.qza"
 
@@ -219,17 +205,22 @@ rule filter_table_feature:
 
 rule feature_table_summarize:
     input:
-        "artifacts/table-filtered.qza",
+        table = "artifacts/table-filtered.qza",
         metadata = config["metadata"]
     output:
-        "artifacts/table-viz.qzv"
+        summary = "artifacts/table-filtered.qzv",
+        feature_freq = "artifacts/feature-frequencies.qza",
+        sample_freq = "artifacts/sample-frequencies.qza"
     conda:
         "envs/qiime2.yml"
     shell:
         "qiime feature-table summarize "
-        "--i-table artifacts/table-filtered.qza "
-        "--o-visualization artifacts/table-viz.qzv "
-        "--m-sample-metadata-file {input.metadata}"
+        "--i-table {input.table} "
+        "--m-metadata-file {input.metadata} "
+        "--o-feature-frequencies {output.feature_freq} "
+        "--o-sample-frequencies {output.sample_freq} "
+        "--o-summary {output.summary}"
+
 
 rule rarefy_table:
     input:
@@ -246,23 +237,21 @@ rule rarefy_table:
         "--p-sampling-depth {params.sampling_depth} "
         "--o-rarefied-table artifacts/rarefied-table-filtered.qza"
 
-"""
 rule tabulate_seqs:
     input:
-        "artifacts/demux-paired-end.qza"
+        "artifacts/demux-paired-end-rep-seqs.qza"
     output:
-        "artifacts/demux-paired-end.qzv"
+        "artifacts/demux-paired-end-rep-seqs.qzv"
     conda:
-        "envs/qiime2-2022.2.yml"
+        "envs/qiime2.yml"
     shell:
         "qiime feature-table tabulate-seqs "
         "--i-data {input} "
         "--o-visualization {output}"
-"""
 
 rule mafft_fasttree:
     input:
-        "artifacts/demux-paired-end-pre-trim.qza"
+        "artifacts/demux-paired-end-rep-seqs.qza"
     output:
         "artifacts/aligned-rep-seqs.qza",
         "artifacts/masked-aligned-rep-seqs.qza",
@@ -278,7 +267,26 @@ rule mafft_fasttree:
         "--o-tree artifacts/unrooted-tree.qza "
         "--o-rooted-tree artifacts/rooted-tree.qza"
 
-rule phylogeny_tabulate:
+rule plot_rarefaction_curve:
+    input:
+        table = "artifacts/table-filtered.qza",
+        tree = "artifacts/rooted-tree.qza",
+        metadata = config["metadata"]
+    output:
+        "artifacts/alpha-rarefaction.qzv"
+    params:
+        sampling_depth = config["sampling_depth_phylogenetic"]
+    conda:
+        "envs/qiime2.yml"
+    shell:
+        "qiime diversity alpha-rarefaction "
+        "--i-table {input.table} "
+        "--i-phylogeny {input.tree} "
+        "--p-max-depth {params.sampling_depth} "
+        "--m-metadata-file {input.metadata} "
+        "--o-visualization {output}"
+
+rule taxonomy_tabulate:
     input:
         "artifacts/taxonomy.qza"
     output:
@@ -452,8 +460,12 @@ rule faith_alpha:
 
 rule taxa_barplot:
     input: 
-        "artifacts/table-filtered.qza",
-        "artifacts/taxonomy.qza",
+        "artifacts/demux-paired-end.qzv",
+        "artifacts/table-filtered.qzv",
+        "artifacts/demux-paired-end-rep-seqs.qzv",
+        "artifacts/alpha-rarefaction.qzv",
+        table = "artifacts/table-filtered.qza",
+        taxonomy = "artifacts/taxonomy.qza",
         metadata = config["metadata"]
     output: 
         "artifacts/taxa-barplot.qzv"
@@ -461,10 +473,10 @@ rule taxa_barplot:
         "envs/qiime2.yml"
     shell: 
         "qiime taxa barplot "
-        "--i-table artifacts/table-filtered.qza "
-        "--i-taxonomy artifacts/taxonomy.qza "
+        "--i-table {input.table} "
+        "--i-taxonomy {input.taxonomy} "
         "--m-metadata-file {input.metadata} "
-        "--o-visualization artifacts/taxa-barplot.qzv"
+        "--o-visualization {output}"
 
 rule export_bray_curtis:
     input: 
