@@ -31,10 +31,16 @@ table-filter: #determines which features will be removed from table due to host 
 beta-div-column: #which variable from metadata file is being measured
   "Groups"
 
+# adapter sequence(s) to trim. Use ^ or $ to respectively "anchor" a sequence to the beginning or end of the read (recommended for 5' sequences).
+# use commas [without spaces] to search for multiple sequences (e.g., seq1,seq2,seq3). Leave a sequence as "" to avoid trimming in that location.
+# leave all sequences as "" to avoid trimming entirely.
 cutadapt:
-  adapter_f: "AGATCGGAAGAGCACACGTCTGAACTCCAGTCA,CTGTCTCTTATACACATCT" # forward adapter sequence(s) to trim. Leave as "" to avoid trimming entirely
-  adapter_r: "AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT,CTGTCTCTTATACACATCT" # reverse adapter sequence(s) to trim. Leave as "" to avoid trimming entirely
+  front_f: "^CCTACGGGNGGCWGCAG"     # forward read 5' (beginning) adapter sequence(s) to trim.
+  adapter_f: "CTGTCTCTTATACACATCT"  # forward read 3' (end) adapter sequence(s) to trim.
+  front_r: "^GACTACHVGGGTATCTAATCC" # reverse read 3' (beginning) adapter sequence(s) to trim.
+  adapter_r: "CTGTCTCTTATACACATCT"  # reverse read 5' (end) adapter sequence(s) to trim.
   minimum_length: "20" # trimmed reads shorter than this will be removed
+  times: "1" # number of times to search each read. Increasing this will allow trimming when more than 1 of the specified sequences is present.
 
 # manual trimming; note that the parameters are string form
 trunclenf:

@@ -40,9 +40,12 @@ rule qiime2_trim_paired:
     input:
         "artifacts/demux-paired-end.qza",
     params:
+        front_f = [f'--p-front-f {seq} ' for seq in config["cutadapt"]["front_f"].split(',') if seq],
         adapter_f = [f'--p-adapter-f {seq} ' for seq in config["cutadapt"]["adapter_f"].split(',') if seq],
+        front_r = [f'--p-front-r {seq} ' for seq in config["cutadapt"]["front_r"].split(',') if seq],
         adapter_r = [f'--p-adapter-r {seq} ' for seq in config["cutadapt"]["adapter_r"].split(',') if seq],
-        min_length = config["cutadapt"]["minimum_length"]
+        min_length = config["cutadapt"]["minimum_length"],
+        times = config["cutadapt"]["times"]
     threads:
         config['threads']['trimming']
     output:
@@ -54,8 +57,11 @@ rule qiime2_trim_paired:
     shell:
         "qiime cutadapt trim-paired "
         "--i-demultiplexed-sequences {input} "
+        "{params.front_f}"
         "{params.adapter_f}"
+        "{params.front_r}"
         "{params.adapter_r}"
+        "--p-times {params.times} "
         "--p-minimum-length {params.min_length} "
         "--p-cores {threads} "
         "--o-trimmed-sequences {output.trim_qza} "
